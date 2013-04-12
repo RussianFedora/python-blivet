@@ -47,7 +47,7 @@ storage configuration.
 
 %prep
 %setup -q -n %{realname}-%{version}
-%patch -p1
+%patch0 -p1
 
 %build
 make
