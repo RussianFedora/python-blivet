@@ -2,11 +2,12 @@ Summary:  A python module for system storage configuration
 Name: python-blivet
 Url: http://fedoraproject.org/wiki/blivet
 Version: 0.10
-Release: 1%{?dist}
+Release: 1.1%{?dist}
 License: GPLv2+
 Group: System Environment/Libraries
 %define realname blivet
 Source0: http://git.fedorahosted.org/cgit/blivet.git/snapshot/%{realname}-%{version}.tar.gz
+Patch0: blivet-0.10-rfremix.patch
 
 # Versions of required components (done so we make sure the buildrequires
 # match the requires versions of things).
@@ -46,6 +47,7 @@ storage configuration.
 
 %prep
 %setup -q -n %{realname}-%{version}
+%patch -p1
 
 %build
 make
@@ -61,6 +63,9 @@ make DESTDIR=%{buildroot} install
 %{python_sitelib}/*
 
 %changelog
+* Fri Apr 12 2013 Arkady L. Shane <ashejn@russianfedora.ru> - 0.10-1.1.R
+- read rfremix-release first
+
 * Tue Apr 09 2013 David Lehman <dlehman@redhat.com> - 0.10-1
 - Extended partitions containing logical partitions are not leaves. (#949912) (dlehman)
 - Remove devices in reverse order in Blivet.recursiveRemove. (#949912) (dlehman)
