@@ -1,8 +1,8 @@
 Summary:  A python module for system storage configuration
 Name: python-blivet
 Url: http://fedoraproject.org/wiki/blivet
-Version: 0.11
-Release: 1.1%{?dist}
+Version: 0.12
+Release: 1%{?dist}
 License: GPLv2+
 Group: System Environment/Libraries
 %define realname blivet
@@ -63,6 +63,9 @@ make DESTDIR=%{buildroot} install
 %{python_sitelib}/*
 
 %changelog
+* Tue May 07 2013 Arkady L. Shane <ashejn@russianfedora.ru> - 0.12-1.R
+- update to 0.12
+
 * Tue Apr 15 2013 Arkady L. Shane <ashejn@russianfedora.ru> - 0.11-1.1.R
 - fix rfremix-release detection
 
