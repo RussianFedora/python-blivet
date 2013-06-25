@@ -1,9 +1,9 @@
 Summary:  A python module for system storage configuration
 Name: python-blivet
 Url: http://fedoraproject.org/wiki/blivet
-Version: 0.14
+Version: 0.17
 Release: 1%{?dist}
-License: GPLv2+
+License: LGPLv2+
 Group: System Environment/Libraries
 %define realname blivet
 Source0: http://git.fedorahosted.org/cgit/blivet.git/snapshot/%{realname}-%{version}.tar.gz
@@ -40,6 +40,7 @@ Requires: e2fsprogs >= %{e2fsver}
 Requires: btrfs-progs
 Requires: python-pyblock >= %{pythonpyblockver}
 Requires: device-mapper-multipath
+Requires: lsof
 
 %description
 The python-blivet package is a python module for examining and modifying
@@ -63,6 +64,9 @@ make DESTDIR=%{buildroot} install
 %{python_sitelib}/*
 
 %changelog
+* Tue Jun 25 2013 Arkady L. Shane <ashejn@russianfedora.ru> - 0.17-1.R
+- update to 0.17
+
 * Fri May 17 2013 Arkady L. Shane <ashejn@russianfedora.ru> - 0.14-1.R
 - update to 0.14
 
