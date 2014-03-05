@@ -1,13 +1,14 @@
 Summary:  A python module for system storage configuration
 Name: python-blivet
 Url: http://fedoraproject.org/wiki/blivet
-Version: 0.23.9
+Version: 0.43
 Release: 1%{?dist}
 License: LGPLv2+
 Group: System Environment/Libraries
 %define realname blivet
-Source0: http://git.fedorahosted.org/cgit/blivet.git/snapshot/%{realname}-%{version}.tar.gz
-Patch0: blivet-0.11-rfremix.patch
+Source0: http://github.com/dwlehman/blivet/archive/%{realname}-%{version}.tar.gz
+
+Patch10: blivet-0.43-rfremix.patch
 
 # Versions of required components (done so we make sure the buildrequires
 # match the requires versions of things).
@@ -19,6 +20,7 @@ Patch0: blivet-0.11-rfremix.patch
 %define e2fsver 1.41.0
 %define pythoncryptsetupver 0.1.1
 %define utillinuxver 2.15.1
+%define lvm2ver 2.02.99
 
 BuildArch: noarch
 BuildRequires: gettext
@@ -30,10 +32,10 @@ Requires: util-linux >= %{utillinuxver}
 Requires: parted >= %{partedver}
 Requires: pyparted >= %{pypartedver}
 Requires: device-mapper >= %{dmver}
-Requires: cryptsetup-luks
+Requires: cryptsetup
 Requires: python-cryptsetup >= %{pythoncryptsetupver}
 Requires: mdadm
-Requires: lvm2
+Requires: lvm2 >= %{lvm2ver}
 Requires: dosfstools
 Requires: e2fsprogs >= %{e2fsver}
 Requires: btrfs-progs
@@ -47,7 +49,7 @@ storage configuration.
 
 %prep
 %setup -q -n %{realname}-%{version}
-%patch0 -p1 -b .rfremix
+%patch10 -p1
 
 %build
 make
@@ -63,25 +65,298 @@ make DESTDIR=%{buildroot} install
 %{python_sitelib}/*
 
 %changelog
-* Sat Dec 14 2013 Arkady L. Shane <ashejn@russianfedora.ru> - 0.23.9-1.R
-- update to 0.23.9
+* Wed Mar  5 2014 Arkady L. Shane <ashejn@russianfedora.ru> - 0.43-1.R
+- apply RFRemix patch to find RFRemix distributions
 
-* Thu Nov 28 2013 Arkady L. Shane <ashejn@russianfedora.ru> - 0.23.7-1.R
-- update to 0.23.7
+* Fri Feb 28 2014 Brian C. Lane <bcl@redhat.com> - 0.43-1
+- Include tmpfs mounts in post-install kickstart (#1061063) (mkolman)
+- Count with the extra metadata extents for RAID consistently (#1065737)
+  (vpodzime)
+- Make partitioning error message more friendly (#1020388) (amulhern)
+- Fix partition handling across multiple processActions calls. (#1065522)
+  (dlehman)
+- Let the udev queue settle before populating the devicetree. (#1049772)
+  (dlehman)
+- Don't activate or deactivate devices from the action classes. (#1064898)
+  (dlehman)
+- Improve handling of parted.DiskLabelCommitError slightly. (dlehman)
+- Make teardownAll work regardless of flags. (dlehman)
+- Fix maxSize test when setting device target size. (dlehman)
+- Size.convertTo should return a Decimal. (dlehman)
+- Don't use float for anything. (dlehman)
+- Fix type of block count in PartitionDevice._wipe. (dlehman)
+- Fix handling of size argument to devicelibs.lvm.thinlvcreate. (#1062223)
+  (dlehman)
+- return empty set when no matching fcoe nic (#1067159) (bcl)
+- Return str from Size.humanReadable (#1066721) (dshea)
+- Add a coverage test target (#1064895) (amulhern)
+- Filesystem labeling tests will not run without utilities (#1065422)
+  (amulhern)
+- Rename misc_test.py to something more descriptive (#1065422) (amulhern)
+- Refactor labeling tests (#1065422) (amulhern)
+- Move SwapSpace tests into a separate class (#1065422) (amulhern)
 
-* Sun Nov 10 2013 Arkady L. Shane <ashejn@russianfedora.ru> - 0.23.4-1.R
-- update to 0.23.4
+* Tue Feb 18 2014 Brian C. Lane <bcl@redhat.com> - 0.42-1
+- Wait for udev to create device node for new md arrays. (#1036014) (dlehman)
+- Fix detection of thin pool with non-standard segment types. (#1022810)
+  (dlehman)
+- NFSDevice does not accept the exists kwarg. (#1063413) (dlehman)
+- Don't run mpathconf for disk image installations. (#1066008) (dlehman)
+- If /etc/os-release exists, check it to identify an installed system.
+  (clumens)
+- Get the unit tests into a runnable state. (dlehman)
+- Update Source URL in spec file to use github. (dlehman)
 
-* Mon Oct 28 2013 Arkady L. Shane <ashejn@russianfedora.ru> - 0.23.2-1.R
-- update to 0.23.2
+* Tue Feb 11 2014 Brian C. Lane <bcl@redhat.com> - 0.41-1
+- ntfs _getSize needs to use Decimal (#1063077) (bcl)
+- Separate sanityCheck-ing from doAutoPartition (#1060255) (amulhern)
+- Change messages to SanityExceptions objects (#1060255) (amulhern)
+- Make a small SanityException hierarchy (#1060255) (amulhern)
+- Remove unused exception class (#1060255) (amulhern)
+- Add another .decode("utf-8") to humanReadable (#1059807) (dshea)
+- makebumpver: Any failure should cancel the bump (bcl)
 
-* Fri Oct 26 2013 Arkady L. Shane <ashejn@russianfedora.ru> - 0.23.1-1.R
-- apply RFRemix patch to read from /etc/rfremix-release first
+* Tue Feb 04 2014 Brian C. Lane <bcl@redhat.com> - 0.40-1
+- makebumpver: Only remove from list if action is not Resolves (bcl)
+- Update bumpver to allow Related bugs (bcl)
+- Remove all dependent devices of san device becoming multipath (#1058939)
+  (rvykydal)
+- When repopulating multipath members mark them as multipath (#1056024)
+  (rvykydal)
+- fcoe: parse yet another sysfs structure for bnx2fc devices (#903122)
+  (rvykydal)
+- fcoe: add fcoe=<NIC>:<EDB> to boot options for nics added manually (#1040215)
+  (rvykydal)
+- Convert the ntfs minsize to an int (#1060031) (dshea)
+- Convert the string representation of Size to a str type. (#1060382) (dshea)
+- don't display stage2 missing error as well if the real problem is stage1
+  (awilliam)
+- Provide a mechanism for platform-specific error messages for stage1 failure
+  (awilliam)
+- Don't add None value to req_disks (#981316) (amulhern)
+- Make error message more informative (#1022497) (amulhern)
+- Check that file that loop device is going to use exists (#982164) (amulhern)
+- Use os.path.isabs to check whether path name is absolute (#994488) (amulhern)
 
-* Wed Oct 16 2013 David Lehman <dlehman@redhat.com> - 0.23.1-1
-- Update bumpver for f20 x.y.z (bcl)
+* Tue Jan 28 2014 Brian C. Lane <bcl@redhat.com> - 0.39-1
+- escrow: make sure the output directory exists (#1026653) (wwoods)
+- provide a more useful error message if user fails to create an ESP (awilliam)
+- Tell lvcreate not to ask us any questions and do its job. (#1057066)
+  (dlehman)
+
+* Fri Jan 24 2014 Brian C. Lane <bcl@redhat.com> - 0.38-1
+- Some simple tests for _verifyLUKSDevicesHaveKey (#1023442) (amulhern)
+- Verify that LUKS devices have some encryption key (#1023442) (amulhern)
+
+* Wed Jan 22 2014 Brian C. Lane <bcl@redhat.com> - 0.37-1
+- Only do SELinux context resets if in installer mode (#1038146) (amulhern)
+- Look up SELinux context for lost+found where it is needed (#1038146)
+  (amulhern)
+- Don't reset the SELinux context before the filesystem is mounted (#1038146)
+  (amulhern)
+- Test setting selinux context on lost+found (#1038146) (amulhern)
+- Only retrieve the unit specifier once (dshea)
+- Fix the Device.id usage. (dshea)
+- Accept both English and localized sizes in Size specs. (dshea)
+- Use a namedtuple to store information on unit prefixes (dshea)
+- Remove en_spec Size parameters. (dshea)
+- Fix potential traceback in devicetree.populate. (#1055523) (dlehman)
+- Fall back on relabeling app where available (#1038590) (amulhern)
+- Change the meaning of label field values (#1038590) (amulhern)
+- Enable labeling on NTFS filesystem (#1038590) (amulhern)
+- Enable labeling on HFS filesystem (#1038590) (amulhern)
+- Add a method that indicates ability to relabel (#1038590) (amulhern)
+- Use filesystem creation app to set filesystem label (#1038590) (amulhern)
+- Import errors so FSError name is resolved (#1038590) (amulhern)
+- Remove BTRFS._getFormatOptions (#1038590) (amulhern)
+- Make an additional class for labeling abstractions (#1038590) (amulhern)
+- Fix copyright date (#1038590) (amulhern)
+- Remove redundant _defaultFormatOptions field (#1038590) (amulhern)
+- Remove code about unsetting a label (#1038590) (amulhern)
+- Return None if the filesystem has no label (#1038590) (amulhern)
+- Removed redundant check for existance of filesystem (#1038590) (amulhern)
+- Have writeLabel throw a more informative exception (#1038590) (amulhern)
+
+* Fri Jan 17 2014 Brian C. Lane <bcl@redhat.com> - 0.36-1
+- Update the TODO list. (dlehman)
+- Multipath, fwraid members need not be in exclusiveDisks. (#1032919) (dlehman)
+- Convert parted getLength values to Size (dshea)
+- Last of the Device._id -> Device.id (bcl)
+- iscsi: in installer automatically log into firmware iscsi targets (#1034291)
+  (rvykydal)
+- Use isinstance for testing numeric types (vpodzime)
+- Device._id -> Device.id (clumens)
+- Allow resetting partition size to current on-disk size. (#1040352) (dlehman)
+
+* Fri Jan 10 2014 Brian C. Lane <bcl@redhat.com> - 0.35-1
+- Convert everything to use Size. (dlehman)
+- Allow negative sizes. (dlehman)
+- Fix return value of Size.convertTo with a spec of bytes. (dlehman)
+- Discard partial bytes in Size constructor. (dlehman)
+- Prefer binary prefixes since everything is really based on them. (dlehman)
+- Fix a few minor problems introduced by recent raid level changes. (dlehman)
+- Move label setter and getter into DeviceFormat class (#1038590) (amulhern)
+- Add a test for labeling swap devices (#1038590) (amulhern)
+- Default to None to mean none, rather than empty string (#1038590) (amulhern)
+- Add a labelFormatOK method to the DeviceFormat's interface (#1038590)
+  (amulhern)
+- Indicate whether the filesystem can label (#1038590) (amulhern)
+- Restore ability to write an empty label where possible (#1038590) (amulhern)
+- More tests to check writing and reading labels (#1038590) (amulhern)
+- Remove fsConfigFromFile (#1038590) (amulhern)
+- Changes to the handling of filesystem labeling (#1038590) (amulhern)
+- Add some simple tests for file formats. (amulhern)
+- Give DeviceFormat objects an id (#1043763) (amulhern)
+- Refactor to use ObjectID class (#1043763) (amulhern)
+- Make a class that creates a unique-per-class id for objects (#1043763)
+  (amulhern)
+- Revert "Make a class that creates a unique-per-class id for objects
+  (#1043763)" (amulhern)
+- Revert "Give DeviceFormat objects an object_id (#1043763)" (amulhern)
+- Make the maximum end sector for PReP boot more benevolent (#1029893)
+  (vpodzime)
+- Give DeviceFormat objects an object_id (#1043763) (amulhern)
+- Make a class that creates a unique-per-class id for objects (#1043763)
+  (amulhern)
+- Make get_device_format_class return None if class not found (#1043763)
+  (amulhern)
+- A few simple unit tests for some formats methods (#1043763) (amulhern)
+- Don't translate format names (dshea)
+
+* Thu Dec 19 2013 Brian C. Lane <bcl@redhat.com> - 0.34-1
+- Forget existing partitions of device becoming a multipath member (#1043444)
+  (rvykydal)
+- Include blivet.devicelibs.raid in the generated documentation. (amulhern)
+- Upgrade the comments in raid.py to be compatible with sphinx. (amulhern)
+- Make space for LUKS metadata if creating encrypted device (#1038847)
+  (vpodzime)
+- fcoe: give error message in case of fail when adding device (#903122)
+  (rvykydal)
+- fcoe: adapt bnx2fc detection to changed sysfs path structure (#903122)
+  (rvykydal)
+- Update format of iscsi device becoming multipath member (#1039086) (rvykydal)
+
+* Tue Dec 17 2013 Brian C. Lane <bcl@redhat.com> - 0.33-1
+- Add initial 64-bit ARM (aarch64) support (#1034435) (dmarlin)
+- Convert to sphinx docstrings. (dlehman)
+- Add some documentation. (dlehman)
+- Move getActiveMounts from Blivet into DeviceTree. (dlehman)
+- Add an example of creating lvs using growable requests. (dlehman)
+- Remove a whole bunch of unused stuff from Blivet. (dlehman)
+- Remove usage of float in Size.humanReadable. (dlehman)
+- Add missing abbreviations for binary size units. (dlehman)
+- Fix shouldClear for devices with protected descendants. (#902417) (dlehman)
+- Use // division so that it continues to be floor division in Python 3.
+  (amulhern)
+
+* Thu Dec 12 2013 Brian C. Lane <bcl@redhat.com> - 0.32-1
+- Work on devicelibs.btrfs methods that require that the device be mounted.
+  (amulhern)
+- Remove some methods from devicelibs.btrfs. (amulhern)
+- Add a comment to btrfs.create_volume. (amulhern)
+- Add a file to run btrfs tests. (amulhern)
+- Remove format.luks.LUKS.removeKeyFromFile. (amulhern)
+- Changes to devicelibs.mdraid.mdactivate. (amulhern)
+- Restore an import removed in a previous commit. (amulhern)
+- Add a PE for LUKS metadata (#1038969) (bcl)
+- Adjust currentSize methods slightly. (amulhern)
+- Put additional constraints on the ActionResizeDevice initializer. (amulhern)
+- Remove redundant checks in existing resize() methods. (amulhern)
+- Add some baseline unit tests for BTRFS devices. (amulhern)
+- Robustify use of defaultSubVolumeID field. (amulhern)
+- Check that a BTRFS subvolume has exactly one parent in constructor.
+  (amulhern)
+- BTRFSSubVolume.volume checks the class of its return value. (amulhern)
+- Raise ValueError in BTRFS constructor if no parents specified. (amulhern)
+- Add tests for a couple of additional properties for MDRaidArrayDevice.
+  (amulhern)
+- Factor state testing behavior into a separate class. (amulhern)
+- Remove redundant condition in if statement. (amulhern)
+
+* Thu Dec 05 2013 Brian C. Lane <bcl@redhat.com> - 0.31-1
+- Make RAIDLevel an abstract class using abc. (amulhern)
+- Restore a util import that was removed in a recent commit. (amulhern)
+
+* Wed Dec 04 2013 Brian C. Lane <bcl@redhat.com> - 0.30-1
+- Always run action's cancel method as part of cancelAction. (dlehman)
+- Show Invalid Disk Label for damaged GPT (#1020974) (bcl)
+- Make error message in setDefaultFSType more informative (#1019766) (amulhern)
+- Set sysfsPath of LUKSDevice when adding to device tree (#1019638) (jsafrane)
+- Use given format type as format's name instead of type (vpodzime)
+
+* Wed Nov 27 2013 Brian C. Lane <bcl@redhat.com> - 0.29-1
+- btrfs and xfs do not support fsck or dump at boot time (#862871) (bcl)
+- Removed raid level constants from mdraid.py. (amulhern)
+- Remove raidLevel and get_raid_min_members for mdraid.py. (amulhern)
+- Remove raidLevelString in raid and mdraid. (amulhern)
+- In devicefactory.py change mdraid procedures call to raid method calls.
+  (amulhern)
+- Removed mdraid.raid_levels (amulhern)
+- Removed mdraid.get_raid_max_spares. (amulhern)
+- Change MDRaidArrayDevice to use raid package. (amulhern)
+- Changed devicelibs.mdraid to make use of devicelibs.raid. (amulhern)
+- Implement a RAID class hierarchy. (amulhern)
+- A few small tests for MDFactory class. (amulhern)
+- Add some additional unit tests in mdraid_tests.py. (amulhern)
+- Make MDRaidArrayDevice initializer not except raid level of None. (amulhern)
+- Add some basic unit tests for MDRaidArrayDevice. (amulhern)
+- Move pyanaconda import into blivet.enable_installer_mode. (amulhern)
+
+* Mon Nov 25 2013 David Lehman <dlehman@redhat.com> - 0.28-1
+- Clear whole-disk formatting before initializing disks. (#1032380) (dlehman)
+- Simplify calculation of vol size when adding a btrfs subvol. (#1033356)
+  (dlehman)
+- Handle passing a btrfs volume as device to BTRFSFactory. (dlehman)
+- Add support for detecting btrfs default subvolume. (dlehman)
+- Handle nested btrfs subvolumes correctly. (#1016959) (dlehman)
+- Mark all format names as translatable (dshea)
+- Add parameters for untranslated Size specs. (dshea)
+- Fix usage of _ vs N_ (dshea)
+- Added a i18n module for gettext functions. (dshea)
+- Allow non-ASCII characters in the size spec (dshea)
+
+* Tue Nov 19 2013 David Lehman <dlehman@redhat.com> - 0.27-1
+- Specify btrfs volumes by UUID in /etc/fstab. (dlehman)
+- Catch any exception raised by findExistingInstallations. (#980267) (dlehman)
+- Prevent md_node_from_name from raising OSError. (#980267) (dlehman)
+- Tidy up tests in devicelibs_test directory. (amulhern)
+- Preparation for lv resize is a subset of that for lv destroy. (#1027682)
+  (dlehman)
+- Make sure new values of targetSize are within bounds. (dlehman)
+- Devices with non-existent formatting are resizable. (#1027714) (dlehman)
+- Do not hide non-existent devices. (#1027846) (dlehman)
+- Change XFS maximum to 16EB (#1016035) (bcl)
+- Add tmpfs support (#918621) (mkolman)
+- Add support for returning machine word length (mkolman)
+- Require cryptsetup instead of cryptsetup-luks (#969597) (amulhern)
+- Fix initialization of disks containing sun or mac disklabels. (dlehman)
+- Newly formatted devices are used unless mountpoint is empty. (#966078)
+  (dlehman)
+- Fix detection of lvm setups. (#1026466) (dlehman)
+- Fix handling of overcommitted thin pools in thinp factory. (#1024144)
+  (dlehman)
+- Fix name checking for new thin lvs. (#1024076) (dlehman)
+
+* Wed Oct 30 2013 Brian C. Lane <bcl@redhat.com> - 0.26-1
+- Add macefi format type (#1010495) (bcl)
+- Allow hfs+ boot devices to have their name set (#1010495) (bcl)
+- Update parted partitions on hidden disks when copying a Blivet. (#1023556)
+  (dlehman)
+- Add ack flag checking to makebumpver (bcl)
+- Add makebumpver script (bcl)
+
+* Fri Oct 25 2013 Brian C. Lane <bcl@redhat.com> - 0.25-1
+- Remove requirement for btrfsctl which no longer exists. (#1012504) (dlehman)
+- Allow for adjustment of factory vg after removal of thin pool. (#1021890) (dlehman)
+- Add boot description for "disk" devices on s390. (#867777, #903237, #960143) (sbueno+anaconda)
+- Add initial spport for aarch64 as we only plan to support UEFI this should be enough (dennis)
+
+* Wed Oct 16 2013 David Lehman <dlehman@redhat.com> - 0.24-1
+- Close file descriptors other than stdin,stdout,stderr on exec. (#1016467) (dlehman)
+- Don't use hardcoded /tmp paths. (#1004404) (dlehman)
 - Fix detection of lvm thinp setups. (#1013800) (dlehman)
 - Generate a name if necessary when reconfiguring a factory device. (#1019500) (dlehman)
+- Handle anaconda's cmdline option to disable mpath friendly names. (#977815) (dlehman)
 - Allow specifying which swaps should appear in fstab (vpodzime)
 - Do not limit swap size to 10 % of disk space for hibernation (vpodzime)
 
