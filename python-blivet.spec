@@ -1,7 +1,7 @@
 Summary:  A python module for system storage configuration
 Name: python-blivet
 Url: http://fedoraproject.org/wiki/blivet
-Version: 0.58
+Version: 0.62
 Release: 1%{?dist}
 License: LGPLv2+
 Group: System Environment/Libraries
@@ -24,9 +24,10 @@ Patch10: blivet-0.58-rfremix.patch
 
 BuildArch: noarch
 BuildRequires: gettext
-BuildRequires: python-setuptools-devel
+BuildRequires: python-setuptools
 
 Requires: python
+Requires: python-six
 Requires: pykickstart >= %{pykickstartver}
 Requires: util-linux >= %{utillinuxver}
 Requires: parted >= %{partedver}
@@ -65,6 +66,9 @@ make DESTDIR=%{buildroot} install
 %{python_sitelib}/*
 
 %changelog
+* Sat Aug 30 2014 Arkady L. Shane <ashejn@russianfedora.ru> - 0.62-1.R
+- update to 0.62
+
 * Wed Jun 25 2014 Brian C. Lane <bcl@redhat.com> - 0.58-1.R
 - Only import ROOT_PATH if needed (bcl)
 - Add early keyword to setUpBootLoader (#1086811) (bcl)
