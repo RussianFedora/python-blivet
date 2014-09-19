@@ -1,8 +1,9 @@
 Summary:  A python module for system storage configuration
 Name: python-blivet
 Url: http://fedoraproject.org/wiki/blivet
-Version: 0.62
-Release: 1%{?dist}
+Version: 0.61.2
+Release: 2%{?dist}
+Epoch: 1
 License: LGPLv2+
 Group: System Environment/Libraries
 %define realname blivet
@@ -66,6 +67,17 @@ make DESTDIR=%{buildroot} install
 %{python_sitelib}/*
 
 %changelog
+* Wed Sep 17 2014 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 0.61.2-2.R
+- Actually upload the right sources this time.
+
+* Wed Sep 17 2014 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 0.61.2-1.R
+- Add an epoch to blivet. (sbueno+anaconda)
+
+* Thu Sep 04 2014 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 0.61.1-1.R
+- Make prefering leaves the default in getDeviceByPath (#1122081) (amulhern)
+- Make _filterDevices() return a generator consistently (#1122081) (amulhern)
+- Don't pass md array UUID as member format UUID. (#1135670) (dlehman)
+
 * Sat Aug 30 2014 Arkady L. Shane <ashejn@russianfedora.ru> - 0.62-1.R
 - update to 0.62
 
