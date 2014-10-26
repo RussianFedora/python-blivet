@@ -1,8 +1,8 @@
 Summary:  A python module for system storage configuration
 Name: python-blivet
 Url: http://fedoraproject.org/wiki/blivet
-Version: 0.61.2
-Release: 2%{?dist}
+Version: 0.61.7
+Release: 1%{?dist}
 Epoch: 1
 License: LGPLv2+
 Group: System Environment/Libraries
@@ -67,6 +67,95 @@ make DESTDIR=%{buildroot} install
 %{python_sitelib}/*
 
 %changelog
+* Thu Oct 23 2014 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 0.61.7-1.R
+- Don't try to get no profile's name (#1155014) (vpodzime)
+- Disable resize of ntfs during OS installation. (#1120964) (dlehman)
+
+* Mon Oct 20 2014 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 0.61.6-1.R
+- Let udev settle between writing partition flags and formatting. (#1109244)
+  (dlehman)
+- Set _partedDevice attribute before calling device constructor (#1150147)
+  (amulhern)
+- Change variable keyword (#1154050) (amulhern)
+- Set sysfsPath attribute before calling Device constructor (#1150147)
+  (amulhern)
+- Take care when checking relationship of parent and child UUIDs (#1150147)
+  (amulhern)
+- Specify file type in transifex config file. (sbueno+anaconda)
+
+* Tue Oct 14 2014 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 0.61.5-1.R
+- Branch transifex for the f21-branch (#1151750) (vpodzime)
+- Remove unused import introduced by porting patches (vpodzime)
+- Allow specifying thin pool profiles (vpodzime)
+- Remove tests for the sanityCheck (vpodzime)
+- Move _verifyLUKSDevicesHaveKey and its exception to anaconda (vpodzime)
+- Remove sanityCheck functions from blivet sources (vpodzime)
+- Allow specifying minimum entropy when creating LUKS (vpodzime)
+- Allow user code provide callbacks for various actions/events (vpodzime)
+- Allow user code creating free space snapshot (vpodzime)
+- Update tests to bring into line w/ previous commit (#1150147) (amulhern)
+- Abstract ContainerDevice member format check into a method (#1150147)
+  (amulhern)
+- Register DeviceFormat class (#1150147) (amulhern)
+- Don't append btrfs mount options to None (#1150872) (dshea)
+- Convert int to str before passing it to run_program (#1151129) (amulhern)
+- Avoid unneccesarily tripping raid-level member count checks. (dlehman)
+- Allow toggling encryption of raid container members. (#1148373) (dlehman)
+- Organize installer block device name blacklist. (#1148923) (dlehman)
+
+* Wed Oct 08 2014 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 0.61.4-1.R
+- Canonicalize MD_UUID* values in udev.py (#1147087) (amulhern)
+- Add a test for activation. (amulhern)
+- Add a test for mddetail on containers. (amulhern)
+- Still attempt to destroy even if remove failed. (amulhern)
+- Use long messages for unittest errors. (amulhern)
+- Fix mdnominate error message. (amulhern)
+- Break once metadata value is found. (amulhern)
+- Split mdadd into separate functions. (amulhern)
+- Refactor mdraid tests. (amulhern)
+- Add a method to extract information about an mdraid array (amulhern)
+- Extend mdadm() to capture output (amulhern)
+- Be more robust in the face of possible changes to mdadm's UUIDs. (amulhern)
+- Factor canonicalize_UUID() into separate method. (amulhern)
+- Add a docstring to mdraid.mdexamine (amulhern)
+- Omit pylint false positive (amulhern)
+- Pylint inspired cleanup (#1070115) (amulhern)
+- Raise an exception when we find orphan partitions. (dlehman)
+- Fall back to parted to detect dasd disklabels. (dlehman)
+- Remove a problematic remnant of singlePV. (dlehman)
+- Remove all traces of singlePV. (sbueno+anaconda)
+- Change the default /boot part on s390x to not be lvm. (sbueno+anaconda)
+- Condense and comment some devicelibs.dasd methods (#1070115) (amulhern)
+- Add a test file for DASD handling (#1070115) (amulhern)
+- Add two functions to enable manual addition of ECKD DASDs. (sbueno+anaconda)
+
+* Tue Sep 30 2014 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 0.61.3-1.R
+- Don't mix target and discovery credentials (#1037564) (mkolman)
+- Filter out free regions too small for alignment of partitions. (dlehman)
+- Align free regions used for partition growing calculations. (dlehman)
+- Try to align end sector up when aligning new partitions. (dlehman)
+- Remove obsolete conversion of size to float. (dlehman)
+- Honor size specified for explicit extended partition requests. (dlehman)
+- Honor zerombr regardless of clearpart setting. (dlehman)
+- Fix treatment of percent as lvm lv size spec. (#1146156) (dlehman)
+- iscsi: fix root argument being overriden by local variable (#1144463)
+  (rvykydal)
+- iscsi: add iscsi singleton back (#1144463) (rvykydal)
+- Only cancel actions on disks related to the one we are hiding. (dlehman)
+- Cancel actions before hiding descendent devices. (dlehman)
+- Improve handling of device removals/additions from the devicetree. (dlehman)
+- The first format destroy action should obsolete any others. (dlehman)
+- Do not allow modification or removal of protected devices. (dlehman)
+- Fix pylint errors from recent btrfs commits. (dlehman)
+- Propagate mount options for btrfs members to all volumes/subvolumes.
+  (dlehman)
+- Properly identify dm devices even when udev info is incomplete. (dlehman)
+- Do not mount btrfs to list subvolumes outside installer_mode. (dlehman)
+- Reset default subvolume prior to removing the default subvolume. (dlehman)
+- Increase max size for btrfs to 16 EiB. (#1114435) (dlehman)
+- Improve adjustment for removal of a subvol in BTRFSFactory. (dlehman)
+- Set dummy mountpoint in ksdata for lvm thin pools. (dlehman)
+
 * Wed Sep 17 2014 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 0.61.2-2.R
 - Actually upload the right sources this time.
 
