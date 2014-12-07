@@ -1,4 +1,4 @@
 #!/bin/sh
 
-curl -sO http://pkgs.fedoraproject.org/repo/pkgs/python-blivet/blivet-0.61.9.tar.gz/7fb09994c40c16efaf197f43ed98b080/blivet-0.61.9.tar.gz
+curl -sO http://pkgs.fedoraproject.org/repo/pkgs/python-blivet/blivet-0.61.13.tar.gz/7b227a6ca6071ca62edcbcd51ef0dee0/blivet-0.61.13.tar.gz
 

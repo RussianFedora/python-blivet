@@ -1,7 +1,7 @@
 Summary:  A python module for system storage configuration
 Name: python-blivet
 Url: http://fedoraproject.org/wiki/blivet
-Version: 0.61.9
+Version: 0.61.13
 Release: 1%{?dist}
 Epoch: 1
 License: LGPLv2+
@@ -16,7 +16,7 @@ Patch10: blivet-0.58-rfremix.patch
 %define dmver 1.02.17-6
 %define pykickstartver 1.99.22
 %define partedver 1.8.1
-%define pypartedver 2.5-2
+%define pypartedver 1:3.9.5
 %define pythonpyblockver 0.45
 %define e2fsver 1.41.0
 %define pythoncryptsetupver 0.1.1
@@ -67,6 +67,36 @@ make DESTDIR=%{buildroot} install
 %{python_sitelib}/*
 
 %changelog
+* Wed Dec 03 2014 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 0.61.13-1.R
+- Fix pyparted version in spec file. (sbueno+anaconda)
+- Revert "Prune actions before cancelling them" (sbueno+anaconda)
+- Revert "Update partitions' numbers and names when adding new partition
+  (#1166598)" (sbueno+anaconda)
+- Revert "Return device's children sorted by name" (sbueno+anaconda)
+
+* Thu Nov 27 2014 Vratislav Podzimek <vpodzime@redhat.com> - 0.61.12-1.R
+- Prune actions before cancelling them (vpodzime)
+- Try to get FS info first before doing an FS check (vpodzime)
+- Reverting partition's size shouldn't require it to be aligned (#1165714)
+  (vpodzime)
+
+* Wed Nov 26 2014 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 0.61.11-1.R
+- Update partitions' numbers and names when adding new partition (#1166598)
+  (vpodzime)
+- Return device's children sorted by name (vpodzime)
+- Run dosfsck in non-interactive mode (#1167959) (bcl)
+
+* Tue Nov 18 2014 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 0.61.10-1.R
+- Round filesystem target size to whole resize tool units. (#1163410) (dlehman)
+- New method to round a Size to a whole number of a specified unit. (dlehman)
+- Fix units for fs min size padding. (dlehman)
+- Disable resize operations on filesystems whose current size is unknown.
+  (dlehman)
+- Run fsck before obtaining minimum filesystem size. (#1162215) (dlehman)
+- Do not translate empty strings, gettext translates them into system
+  information (vtrefny)
+- Add more arguments to mpathconf (#1154347) (dshea)
+
 * Tue Nov 11 2014 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 0.61.9-1.R
 - Device status can never be True for non-existent devices. (#1156058)
   (dlehman)
