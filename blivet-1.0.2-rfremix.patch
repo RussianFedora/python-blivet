@@ -1,7 +1,7 @@
-diff -urN blivet-0.58.orig/blivet/__init__.py blivet-0.58/blivet/__init__.py
---- blivet-0.58.orig/blivet/__init__.py	2014-06-26 18:46:13.598502594 +0400
-+++ blivet-0.58/blivet/__init__.py	2014-06-26 18:47:44.047692860 +0400
-@@ -3084,7 +3084,11 @@
+diff -urN blivet-1.0.2.orig/blivet/osinstall.py blivet-1.0.2/blivet/osinstall.py
+--- blivet-1.0.2.orig/blivet/osinstall.py	2015-03-05 23:11:49.910300195 +0300
++++ blivet-1.0.2/blivet/osinstall.py	2015-03-05 23:13:54.357143574 +0300
+@@ -124,7 +124,11 @@
      except OSError:
          relArch = None
  

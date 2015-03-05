@@ -1,7 +1,7 @@
 Summary:  A python module for system storage configuration
 Name: python-blivet
 Url: http://fedoraproject.org/wiki/blivet
-Version: 0.61.13
+Version: 1.0.2
 Release: 1%{?dist}
 Epoch: 1
 License: LGPLv2+
@@ -9,19 +9,16 @@ Group: System Environment/Libraries
 %define realname blivet
 Source0: http://github.com/dwlehman/blivet/archive/%{realname}-%{version}.tar.gz
 
-Patch10: blivet-0.58-rfremix.patch
+Patch10: blivet-1.0.2-rfremix.patch
 
 # Versions of required components (done so we make sure the buildrequires
 # match the requires versions of things).
-%define dmver 1.02.17-6
 %define pykickstartver 1.99.22
 %define partedver 1.8.1
-%define pypartedver 1:3.9.5
-%define pythonpyblockver 0.45
+%define pypartedver 2.5-2
 %define e2fsver 1.41.0
-%define pythoncryptsetupver 0.1.1
 %define utillinuxver 2.15.1
-%define lvm2ver 2.02.99
+%define libblockdevver 0.6
 
 BuildArch: noarch
 BuildRequires: gettext
@@ -31,19 +28,14 @@ Requires: python
 Requires: python-six
 Requires: pykickstart >= %{pykickstartver}
 Requires: util-linux >= %{utillinuxver}
+Requires: python-pyudev
 Requires: parted >= %{partedver}
 Requires: pyparted >= %{pypartedver}
-Requires: device-mapper >= %{dmver}
-Requires: cryptsetup
-Requires: python-cryptsetup >= %{pythoncryptsetupver}
-Requires: mdadm
-Requires: lvm2 >= %{lvm2ver}
 Requires: dosfstools
 Requires: e2fsprogs >= %{e2fsver}
-Requires: btrfs-progs
-Requires: python-pyblock >= %{pythonpyblockver}
-Requires: device-mapper-multipath
 Requires: lsof
+Requires: libblockdev >= %{libblockdevver}
+Requires: libblockdev-plugins-all >= %{libblockdevver}
 
 %description
 The python-blivet package is a python module for examining and modifying
@@ -51,7 +43,7 @@ storage configuration.
 
 %prep
 %setup -q -n %{realname}-%{version}
-%patch10 -p1
+%patch10 -b .rfremix
 
 %build
 make
@@ -63,49 +55,226 @@ make DESTDIR=%{buildroot} install
 
 %files -f %{realname}.lang
 %defattr(-,root,root,-)
-%doc README ChangeLog COPYING examples
+%license COPYING
+%doc README ChangeLog examples
 %{python_sitelib}/*
 
 %changelog
-* Wed Dec 03 2014 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 0.61.13-1.R
-- Fix pyparted version in spec file. (sbueno+anaconda)
-- Revert "Prune actions before cancelling them" (sbueno+anaconda)
-- Revert "Update partitions' numbers and names when adding new partition
-  (#1166598)" (sbueno+anaconda)
-- Revert "Return device's children sorted by name" (sbueno+anaconda)
+* Thu Mar  5 2015 Arkady L. Shane <ashejn@russianfedora.pro> - 1.0.2-1.R
+- apply RFRemix patches
 
-* Thu Nov 27 2014 Vratislav Podzimek <vpodzime@redhat.com> - 0.61.12-1.R
-- Prune actions before cancelling them (vpodzime)
-- Try to get FS info first before doing an FS check (vpodzime)
-- Reverting partition's size shouldn't require it to be aligned (#1165714)
-  (vpodzime)
+* Wed Mar 04 2015 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 1.0.2-1
+- Revive the mountExistingSystem() function and all it needs (vpodzime)
 
-* Wed Nov 26 2014 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 0.61.11-1.R
-- Update partitions' numbers and names when adding new partition (#1166598)
+* Tue Mar 03 2015 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 1.0.1-1
+- Use format string and arguments for logging function (vpodzime)
+- Do not restrict MDRaidArrayDevice's memberDevices to type int (vpodzime)
+- Adapt better to libblockdev's md_examine data (vpodzime)
+- Set TmpFS._resizable to False. (amulhern)
+- Add an additional test for TmpFS. (amulhern)
+- Override NoDevFS.notifyKernel() so that it does nothing. (amulhern)
+- Add TmpFS._resizefsUnit and use appropriately. (amulhern)
+- Rewrite TmpFS class definition. (amulhern)
+- Add TmpFS._getExistingSize() method. (amulhern)
+- Make _getExistingSize() method more generally useful. (amulhern)
+- Remove _getExistingSize() methods with body pass. (amulhern)
+- Tidy up the definition of the device property throughout formats package. (amulhern)
+- Add a test to check properties of device paths assigned to formats. (amulhern)
+- Set TmpFSDevice object's _formatImmutable attribute to True. (amulhern)
+- Remove no longer needed requires (vpodzime)
+- Filter out pylint's "No name 'GLib' in module 'gi.repository'" messages (vpodzime)
+- Add a static method providing list of available PE sizes (vpodzime)
+- Use BlockDev's crypto plugin to do LUKS escrow (vpodzime)
+- Use BlockDev's DM plugin to work with DM RAID sets (vpodzime)
+- Use BlockDev's DM plugin for DM map existence testing (vpodzime)
+- Remove tests for the removed devicelibs functions (vpodzime)
+- Set and refresh BlockDev's global LVM config if needed (vpodzime)
+- Use BlockDev's LVM plugin instead of devicelibs/lvm.py (vpodzime)
+- Use BlockDev's BTRFS plugin instead of devicelibs/btrfs.py (vpodzime)
+- Use the BlockDev's DM plugin instead of devicelibs/dm.py (vpodzime)
+- Use BlockDev's crypto plugin instead of devicelibs/crypto.py (vpodzime)
+- Use BlockDev's loop plugin instead of devicelibs/loop.py (vpodzime)
+- Use BlockDev's MD plugin instead of devicelibs/mdraid.py (vpodzime)
+- Use BlockDev's swap plugin instead of devicelibs/swap.py (vpodzime)
+- Use BlockDev's mpath plugin instead of devicelibs/mpath.py (vpodzime)
+- First little step towards libblockdev (vpodzime)
+- Move the Blivet class into its own module (vpodzime)
+- Fix txconfig typo. (sbueno+anaconda)
+- Update txconfig for f22-branch. (sbueno+anaconda)
+- Use a safer method to get a dm partition's disk name. (dlehman)
+- Be more careful about overwriting device.originalFormat. (#1192004) (dlehman)
+
+* Fri Feb 13 2015 David Lehman <dlehman@redhat.com> - 1.0-1
+- Move autopart and installation-specific code outside of __init__.py
   (vpodzime)
-- Return device's children sorted by name (vpodzime)
+- Convert _parseUnits to public function (vtrefny)
+- LVMFactory: raise exception when adding LV to full fixed size VG (#1170660)
+  (vtrefny)
+- Do not unhide devices with hidden parents (#1158643) (vtrefny)
+
+* Fri Feb 06 2015 Brian C. Lane <bcl@redhat.com> - 0.76-1
+- Revert "Switch to temporary transifex project" (bcl)
+- Check parent/container type for thin volumes and normal volumes. (dlehman)
+- drop useless entries from formatByDefault exceptlist (awilliam)
+- Fix import of devicelibs.raid in platform.py (vpodzime)
+- Use %%license in python-blivet.spec (bcl)
+- Fix import of FALLBACK_DEFAULT_PART_SIZE (vpodzime)
+- Make implicit partitions smaller if real requests don't fit anywhere
+  (vpodzime)
+- Use list comprehension instead of filter+lambda in makebumpver (amulhern)
+- Revert "Try to deactivate lvm on corrupted gpt disks." (dlehman)
+- Virtualize options property methods in DeviceFormat.options definition.
+  (amulhern)
+- Do not redefine size property in TmpFS. (amulhern)
+- Do not set self.exists to True in TmpFS.__init__(). (amulhern)
+- Simplify NoDevFS.type. (amulhern)
+- Set format's mountpoint if it has the mountpoint attribute. (amulhern)
+- Do not bother to set device.format.mountopts. (amulhern)
+- Tighten up FS.mountable(). (amulhern)
+- Simplify FS._getOptions(). (amulhern)
+- Simplify setting options variable. (amulhern)
+- Be less eager about processing all lines in /proc/meminfo. (amulhern)
+- Make error message more useful. (amulhern)
+- Add a tiny test for TmpFS. (amulhern)
+- More fixes for alignment-related partition allocation failures. (dlehman)
+- Do not mix stdout and stderr when running utilities unless requested
+  (vpodzime)
+- Define the _device, _label and _options attributes in constructor (vpodzime)
+- Get rid of the has_lvm function (vpodzime)
+- Do not create lambda over and over in a cycle (vpodzime)
+- Disable pylint check for cached LVM data in more places (vpodzime)
+- Fix issue where too many mpath luns crashes installer (#1181336) (rmarshall)
+- Allow user-specified values for data alignment of new lvm pvs. (#1178705)
+  (dlehman)
+- Let LVM determine alignment for PV data areas. (#962961) (dlehman)
+- Raise UnusableConfigurationError when unusable configuration is detected.
+  (dlehman)
+- Don't raise an exception for failure to scan an ignored disk. (dlehman)
+- Try to deactivate lvm on corrupted gpt disks. (dlehman)
+- Remove an unused and outdated constant (vpodzime)
+- Relax the blivet device name requirements (#1183061) (dshea)
+
+* Fri Jan 16 2015 Brian C. Lane <bcl@redhat.com> - 0.75-1
+- Switch to temporary transifex project (bcl)
+- Add docstrings to the methods in loop.py (bcl)
+- get_loop_name should return an empty name if it isn't found (#980510) (bcl)
+- Use dict() instead of dict comprehension. (riehecky)
+- Fix the pylint errors in the examples directory. (amulhern)
+- Add __init__ file to examples directory. (amulhern)
+
+* Fri Jan 09 2015 Brian C. Lane <bcl@redhat.com> - 0.74-1
+- Use _resizefsUnit in resizeArgs() method implementations. (amulhern)
+- Do not supply a default implementation for the resizeArgs() method.
+  (amulhern)
+- Use convertTo in humanReadable(). (amulhern)
+- Change convertTo() and roundToNearest() so each takes a units specifier.
+  (amulhern)
+- Do not even pretend that ReiserFS is resizable. (amulhern)
+- Get whole unit tuple in loop when searching for correct units. (amulhern)
+- Make _parseUnits() return a unit constant, rather than a number. (amulhern)
+- Add unitStr() method. (amulhern)
+- Make _Prefix entries named constants. (amulhern)
+- Hoist _BINARY_FACTOR * min_value calculation out of loop. (amulhern)
+- Comment _prefixTestHelper() and eliminate some redundancies. (amulhern)
+- Eliminate redundant test. (amulhern)
+- Avoid using Size constant in FileDevice._create(). (amulhern)
+- Do not compare the same two values twice. (amulhern)
+- Make possiblePhysicalExtents() a bit more direct. (amulhern)
+- Get rid of unnecessary use of long. (amulhern)
+- Use _netdev mount option as needed. (#1166509) (dlehman)
+- Don't crash when a free region is too small for an aligned partition.
+  (dlehman)
+- Multiple loops shouldn't be fatal (#980510) (bcl)
+- If allowing degraded array, attempt to start it (#1090009) (amulhern)
+- Add a method that looks at DEVNAME (#1090009) (amulhern)
+- Add mdrun method to just start, not assemble, an array. (#1090009) (amulhern)
+- Change allow_degraded_mdraid flag to allow_imperfect_devices (#1090009)
+  (amulhern)
+- Remove needsFSCheck() and what only it depends on. (amulhern)
+- Remove allowDirty parameter and code that depends on it. (amulhern)
+- Eliminate dirtyCB parameter from mountExistingSystem() params. (amulhern)
+- Use correct package for FSError. (amulhern)
+
+* Fri Dec 19 2014 Brian C. Lane <bcl@redhat.com> - 0.73-1
+- Mountpoint detection for removable devices (vtrefny)
+- Fix adding partition after ActionDestroyDevice canceling (vtrefny)
+- Avoid exception when aligned start and end are crossed over (exclusion)
+- Substitute simple value for single element array. (amulhern)
+- Change _matchNames so that it is less restrictive (amulhern)
+- Change MDRaidArrayDevice to MDBiosRaidArrayDevice. (amulhern)
+- Factor out MDRaidArrayDevice w/ type in ("mdcontainer", "mdbiosraidarray")
+  (amulhern)
+- Make it possible for NTFS to recognize the label it reads. (amulhern)
+- Make unnecessarily verbose properties into simple class attributes.
+  (amulhern)
+- Change the generic badly formatted label to one that's bad for all.
+  (amulhern)
+- Don't make overridden values actual properties. (amulhern)
+- Check the status of the format being mounted. (amulhern)
+
+* Thu Dec 04 2014 Brian C. Lane <bcl@redhat.com> - 0.72-1
+- Add a bunch of simple tests for filesystem formats. (amulhern)
+- Get rid of long() related code. (amulhern)
+- Add another check for resizable in FS.doResize() (amulhern)
+- Simplify FS.free(). (amulhern)
+- Make an early exit if self._existingSizeFields is [] (amulhern)
+- Change "Aggregate block size:" to "Physical block size:" for JFS. (amulhern)
+- Split output from infofs program for size on whitespace. (amulhern)
+- Simplify _getSize() and currentSize(). (amulhern)
+- Check resizable when assigning a new target size. (amulhern)
+- Make default exists value a boolean in DeviceFormat.__init__. (amulhern)
+- Remove pointless overrides. (amulhern)
+- Add a simple pylint checker for pointless overrides. (amulhern)
 - Run dosfsck in non-interactive mode (#1167959) (bcl)
 
-* Tue Nov 18 2014 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 0.61.10-1.R
+* Fri Nov 21 2014 Brian C. Lane <bcl@redhat.com> - 0.71-1
+- Remove redundant import. (amulhern)
+- Change inclusion to equality. (amulhern)
 - Round filesystem target size to whole resize tool units. (#1163410) (dlehman)
 - New method to round a Size to a whole number of a specified unit. (dlehman)
 - Fix units for fs min size padding. (dlehman)
 - Disable resize operations on filesystems whose current size is unknown.
   (dlehman)
 - Run fsck before obtaining minimum filesystem size. (#1162215) (dlehman)
+- Fix setupDiskImages when the devices are already in the tree. (dlehman)
+- Make logging a little less verbose and more useful in FS.mount() (amulhern)
+- Make selinux test less precise. (amulhern)
 - Do not translate empty strings, gettext translates them into system
   information (vtrefny)
+- Add a tearDown method to StorageTestCase. (dlehman)
+- Remove pointless assignment to _formattable in Iso9660FS. (amulhern)
+- Remove BTRFS._resizeArgs() (amulhern)
 - Add more arguments to mpathconf (#1154347) (dshea)
-
-* Tue Nov 11 2014 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 0.61.9-1.R
+- Check the minimum member size for BtrfsVolumeDevices. (amulhern)
+- Get rid of FS._getRandomUUID() method. (amulhern)
+- Eliminate TmpFS.minSize() (amulhern)
+- Don't run selinux context tests when selinux is disabled. (dlehman)
+- Temporarily disable a test that isn't working. (dlehman)
+- Pass a path (not a name) to devicePathToName. (dlehman)
+- devicePathToName should default to returning a basename. (dlehman)
+- Fix test that guards forcible removal of dm partition nodes. (dlehman)
 - Device status can never be True for non-existent devices. (#1156058)
   (dlehman)
 - Use super to get much-needed MRO magic in constructor. (#1158968) (dlehman)
+
+* Thu Nov 06 2014 Brian C. Lane <bcl@redhat.com> - 0.70-1
+- Add a method that determines whether a number is an exact power of 2.
+  (amulhern)
+- Put size values in Size universe eagerly. (amulhern)
+- Update minSize method headers. (amulhern)
+- Remove _minSize assignment to 0 where it's inherited from superclass.
+  (amulhern)
+- Make _minInstanceSize, a source of minSize() value, always a Size. (amulhern)
 - Fix int * Size operation and add tests (#1158792) (bcl)
 - getArch should return ppc64 or ppc64le (#1159271) (bcl)
 - Pack data for the wait_for_entropy callback (vpodzime)
 - Allow the wait_for_entropy callback enforce continue (vpodzime)
-- Revert "Disable resize of ntfs during OS installation. (#1120964)" (dlehman)
+
+* Tue Nov 04 2014 Brian C. Lane <bcl@redhat.com> - 0.69-1
+- Increase max depth of sphinx toc to show subpackage names. (dlehman)
+- Temporarily disable the md devicetree tests due to mdadm issues. (dlehman)
+- Add ability to set a default fstype for the boot partition (#1112697) (bcl)
+- Pass a list of string items to log_method_return. (sbueno+anaconda)
 - Require resize target sizes to yield aligned partitions. (#1120964) (dlehman)
 - Split out code to determine max unaligned partition size to a property.
   (dlehman)
@@ -114,100 +283,120 @@ make DESTDIR=%{buildroot} install
   (dlehman)
 - Specify ntfs resize target in bytes. (#1120964) (dlehman)
 - Check new target size against min size and max size. (dlehman)
-- Use Decimal for math in Size.convertTo. (#1120964) (dlehman)
-- Change signature of DiskLabel.addPartition to be more useful. (dlehman)
-- Add a contextmanager to create and remove sparse tempfiles. (dlehman)
-- Add a DiskFile class for testing partitioning code as a non-root user.
-  (dlehman)
-- Add ability to set a default fstype for the boot partition (#1112697) (bcl)
-- Pass a list of string items to log_method_return. (sbueno+anaconda)
-- Add testing for MDRaidArrayDevice.mdadmFormatUUID (#1156202) (amulhern)
-- Give mdadm format uuids to the outside world (#1156202) (amulhern)
-
-* Tue Oct 28 2014 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 0.61.8-1.R
+- Add a number of new tests. (amulhern)
+- Add xlate parameter to humanReadable(). (amulhern)
+- Rewrite _parseSpec() and convertTo() (amulhern)
+- Make _lowerASCII() python 3 compatible and add a method header. (amulhern)
+- Use b"", not u"", for _EMPTY_PREFIX. (amulhern)
 - Strip lvm WARNING: lines from output (#1157864) (bcl)
-- Wait for udev to settle before collecting UUID for new filesystems. (dlehman)
+- Add testing for MDRaidArrayDevice.mdadmFormatUUID (#1155151) (amulhern)
+- Give mdadm format uuids to the outside world (#1155151) (amulhern)
+- Make logSize, metaDataSize, and chunkSize always consistently Size objects.
+  (amulhern)
 
-* Thu Oct 23 2014 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 0.61.7-1.R
-- Don't try to get no profile's name (#1155014) (vpodzime)
-- Disable resize of ntfs during OS installation. (#1120964) (dlehman)
-
-* Mon Oct 20 2014 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 0.61.6-1.R
+* Wed Oct 22 2014 Brian C. Lane <bcl@redhat.com> - 0.68-1
+- Only write label if there is a label AND labeling application. (amulhern)
+- Handle unicode strings in Size spec parsing. (dshea)
+- Fix typo in getting Thin Pool profile's name (vpodzime)
+- Don't try to get no profile's name (#1151458) (vpodzime)
+- Change signature of DiskLabel.addPartition to be more useful. (dlehman)
+- Remove unused fallback code from DiskLabel. (dlehman)
 - Let udev settle between writing partition flags and formatting. (#1109244)
   (dlehman)
 - Set _partedDevice attribute before calling device constructor (#1150147)
   (amulhern)
-- Change variable keyword (#1154050) (amulhern)
+- Fixed wrong Runtime Error raise in _preProcessActions (vtrefny)
 - Set sysfsPath attribute before calling Device constructor (#1150147)
   (amulhern)
-- Take care when checking relationship of parent and child UUIDs (#1150147)
+- Return all translated strings as unicode (#1144314) (dshea)
+- Force __str__ to return str. (dshea)
+- Use the i18n module instead of creating new gettext methods (dshea)
+- Take care when checking relationship of parent and child UUIDs (#1151649)
   (amulhern)
-- Specify file type in transifex config file. (sbueno+anaconda)
-
-* Tue Oct 14 2014 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 0.61.5-1.R
-- Branch transifex for the f21-branch (#1151750) (vpodzime)
-- Remove unused import introduced by porting patches (vpodzime)
-- Allow specifying thin pool profiles (vpodzime)
-- Remove tests for the sanityCheck (vpodzime)
-- Move _verifyLUKSDevicesHaveKey and its exception to anaconda (vpodzime)
-- Remove sanityCheck functions from blivet sources (vpodzime)
-- Allow specifying minimum entropy when creating LUKS (vpodzime)
-- Allow user code provide callbacks for various actions/events (vpodzime)
-- Allow user code creating free space snapshot (vpodzime)
+- Further abstract loopbackedtestcase on block_size. (amulhern)
 - Update tests to bring into line w/ previous commit (#1150147) (amulhern)
 - Abstract ContainerDevice member format check into a method (#1150147)
   (amulhern)
 - Register DeviceFormat class (#1150147) (amulhern)
 - Don't append btrfs mount options to None (#1150872) (dshea)
 - Convert int to str before passing it to run_program (#1151129) (amulhern)
+
+* Thu Oct 09 2014 Brian C. Lane <bcl@redhat.com> - 0.67-1
+- Don't pass --disable-overwrite to tx pull. (dlehman)
 - Avoid unneccesarily tripping raid-level member count checks. (dlehman)
 - Allow toggling encryption of raid container members. (#1148373) (dlehman)
-- Organize installer block device name blacklist. (#1148923) (dlehman)
+- Include the new blivet.devices submodule in the built package. (clumens)
+- Add a few test for setting dataLevel and metaDataLevel in BTRFS (amulhern)
+- Add dataLevel and metaDataLevel attributes for testing. (amulhern)
+- Add isleaf and direct to _state_functions (amulhern)
+- Refactor setup of _state_functions into __init__() methods (amulhern)
+- Move getting the attribute into the check methods. (amulhern)
+- Adjust detection of exceptions raised. (amulhern)
+- Update test setup so that it obeys RAID level requirements. (amulhern)
+- Use new RaidDevice class in appropriate Device subclasses. (amulhern)
+- Add new RaidDevice class for handling RAID aspects of devices. (amulhern)
+- Do not set parents attribute if parents param is bad. (amulhern)
 
-* Wed Oct 08 2014 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 0.61.4-1.R
+* Wed Oct 08 2014 Brian C. Lane <bcl@redhat.com> - 0.66-1
+- Organize installer block device name blacklist. (#1148923) (dlehman)
+- Add likely to be raised exceptions to catch block (#1150174) (amulhern)
 - Canonicalize MD_UUID* values in udev.py (#1147087) (amulhern)
-- Add a test for activation. (amulhern)
-- Add a test for mddetail on containers. (amulhern)
-- Still attempt to destroy even if remove failed. (amulhern)
-- Use long messages for unittest errors. (amulhern)
-- Fix mdnominate error message. (amulhern)
-- Break once metadata value is found. (amulhern)
-- Split mdadd into separate functions. (amulhern)
-- Refactor mdraid tests. (amulhern)
-- Add a method to extract information about an mdraid array (amulhern)
-- Extend mdadm() to capture output (amulhern)
-- Be more robust in the face of possible changes to mdadm's UUIDs. (amulhern)
-- Factor canonicalize_UUID() into separate method. (amulhern)
-- Add a docstring to mdraid.mdexamine (amulhern)
-- Omit pylint false positive (amulhern)
-- Pylint inspired cleanup (#1070115) (amulhern)
+- Split up devices.py. (dlehman)
+- Fix some pylint errors introduced in recent commits. (dlehman)
+- Return early when setting new size for non-existent partition. (dlehman)
 - Raise an exception when we find orphan partitions. (dlehman)
 - Fall back to parted to detect dasd disklabels. (dlehman)
+- Omit pylint false positive (amulhern)
+- Revert "pylint hack" (amulhern)
+- Remove unused import (amulhern)
+- Remove unused import (amulhern)
+- pylint hack (amulhern)
+- Make sure autopart requests fit in somewhere (#978266) (vpodzime)
+- Work with free region sizes instead of parted.Geometry objects (vpodzime)
+- Check that we have big enough free space for the partition request (vpodzime)
+- Allow specifying thin pool profiles (vpodzime)
+- Allow specifying minimum entropy when creating LUKS (vpodzime)
+- Allow user code provide callbacks for various actions/events (vpodzime)
+- Change default min_value from 10 to 1 in humanReadable() (amulhern)
+- Rewrite of Size.humanReadable() method (amulhern)
+- Factor out commonalities in xlated_*_prefix() methods. (amulhern)
+- Use named constants for binary and decimal factors. (amulhern)
+- Use UPPER_CASE for constants (amulhern)
+
+* Tue Sep 30 2014 Brian C. Lane <bcl@redhat.com> - 0.65-1
 - Remove a problematic remnant of singlePV. (dlehman)
 - Remove all traces of singlePV. (sbueno+anaconda)
 - Change the default /boot part on s390x to not be lvm. (sbueno+anaconda)
-- Condense and comment some devicelibs.dasd methods (#1070115) (amulhern)
-- Add a test file for DASD handling (#1070115) (amulhern)
-- Add two functions to enable manual addition of ECKD DASDs. (sbueno+anaconda)
-
-* Tue Sep 30 2014 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 0.61.3-1.R
-- Don't mix target and discovery credentials (#1037564) (mkolman)
+- Remove redundant check for parents in Blivet.newBTRFS. (dlehman)
+- Use Decimal for math in Size.convertTo. (dlehman)
 - Filter out free regions too small for alignment of partitions. (dlehman)
+- Disable LVM autobackup when doing image installs (#1066004) (wwoods)
+- Add attribute 'flags.lvm_metadata_backup' (wwoods)
+- lvm_test: refactoring + minor fix (wwoods)
+- devicelibs.lvm: refactor _getConfigArgs()/lvm() (wwoods)
+- devicelibs.lvm: fix pvmove(src, dest=DESTPATH) (wwoods)
+- Only pad for md metadata if pvs use multiple disks. (dlehman)
 - Align free regions used for partition growing calculations. (dlehman)
 - Try to align end sector up when aligning new partitions. (dlehman)
 - Remove obsolete conversion of size to float. (dlehman)
 - Honor size specified for explicit extended partition requests. (dlehman)
 - Honor zerombr regardless of clearpart setting. (dlehman)
-- Fix treatment of percent as lvm lv size spec. (#1146156) (dlehman)
+- Fix treatment of percent as lvm lv size spec. (dlehman)
+- Change variable keyword (#1075671) (amulhern)
+- Remove unused import (#1075671) (amulhern)
+- Don't mix target and discovery credentials (#1037564) (mkolman)
+- Make sure /boot/efi is metadata 1.0 if it's on mdraid. (pjones)
 - iscsi: fix root argument being overriden by local variable (#1144463)
   (rvykydal)
 - iscsi: add iscsi singleton back (#1144463) (rvykydal)
+
+* Fri Sep 19 2014 Brian C. Lane <bcl@redhat.com> - 0.64-1
+- Fix pylint errors from recent btrfs commits. (dlehman)
 - Only cancel actions on disks related to the one we are hiding. (dlehman)
 - Cancel actions before hiding descendent devices. (dlehman)
 - Improve handling of device removals/additions from the devicetree. (dlehman)
 - The first format destroy action should obsolete any others. (dlehman)
 - Do not allow modification or removal of protected devices. (dlehman)
-- Fix pylint errors from recent btrfs commits. (dlehman)
 - Propagate mount options for btrfs members to all volumes/subvolumes.
   (dlehman)
 - Properly identify dm devices even when udev info is incomplete. (dlehman)
@@ -216,22 +405,135 @@ make DESTDIR=%{buildroot} install
 - Increase max size for btrfs to 16 EiB. (#1114435) (dlehman)
 - Improve adjustment for removal of a subvol in BTRFSFactory. (dlehman)
 - Set dummy mountpoint in ksdata for lvm thin pools. (dlehman)
-
-* Wed Sep 17 2014 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 0.61.2-2.R
-- Actually upload the right sources this time.
-
-* Wed Sep 17 2014 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 0.61.2-1.R
 - Add an epoch to blivet. (sbueno+anaconda)
+- Check if device has enough members when setting RAID level (#1019685)
+  (amulhern)
+- Add BTRFSValueError error and use in btrfs related code (#1019685) (amulhern)
+- iscsi: mount partitions in initramfs for root on iscsi (#740106) (rvykydal)
+- Remove poolMetaData (#1021505) (amulhern)
+- Revert "Allow use of a single path if multipath activation fails. (#1054806)"
+  (vpodzime)
+- Add a release make target (bcl)
+- Prefer ID_SERIAL over ID_SERIAL_SHORT (#1138254) (vpodzime)
+- Allow use of a single path if multipath activation fails. (#1054806)
+  (dlehman)
 
-* Thu Sep 04 2014 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 0.61.1-1.R
+* Wed Sep 10 2014 Brian C. Lane <bcl@redhat.com> - 0.63-1
+- Update makebumpver to include flags on first request (bcl)
+- Condense and comment some devicelibs.dasd methods (#1070115) (amulhern)
+- Add a test file for DASD handling (#1070115) (amulhern)
+- Pylint inspired cleanup (#1070115) (amulhern)
+- Add a property for read-only devices. (dshea)
+- Get rid of misleading comment (#1066721) (amulhern)
+- Allow user code creating free space snapshot (vpodzime)
+- Add two functions to enable manual addition of ECKD DASDs. (sbueno+anaconda)
 - Make prefering leaves the default in getDeviceByPath (#1122081) (amulhern)
 - Make _filterDevices() return a generator consistently (#1122081) (amulhern)
-- Don't pass md array UUID as member format UUID. (#1135670) (dlehman)
+- Split string of symlinks into array of strings (#1136214) (amulhern)
+- Don't put "Linux" in a root's name if it's already there. (clumens)
 
-* Sat Aug 30 2014 Arkady L. Shane <ashejn@russianfedora.ru> - 0.62-1.R
-- update to 0.62
+* Thu Aug 28 2014 Brian C. Lane <bcl@redhat.com> - 0.62-1
+- Mock pyudev since libudev will not be on the builders. (dlehman)
+- Update selinux tests for default context of mounts under /tmp. (dlehman)
+- Clean up mocking done by udev tests when finished. (dlehman)
+- Remove unused lvm and md activation code. (dlehman)
+- Bypass size getter when mocking new devices. (dlehman)
+- Simplify udev.device_get_uuid. (dlehman)
+- Don't pass md array UUID as member format UUID. (dlehman)
+- Update md name when lookup relied on UUID. (dlehman)
+- Remove an obsolete block related to unpredictable md device names. (dlehman)
+- Get md member and array UUIDs for format ctor from udev. (dlehman)
+- Look in udev data for md member UUID. (dlehman)
+- Remove some unused multipath-specific functions from blivet.udev. (dlehman)
+- Adapt multipath detection code to external pyudev module. (dlehman)
+- Keep lvm and md metadata separate from udev info. (dlehman)
+- Replace our pyudev with the package python-pyudev. (dlehman)
+- Add a bunch of tests for mdadd. (amulhern)
+- Make has_redundancy() a method rather than a property and revise mdadd.
+  (amulhern)
+- Omit unnecessary class hierarchy related boilerplate. (amulhern)
+- Add a test for activation. (amulhern)
+- Add a test for mddetail on containers. (amulhern)
+- Still attempt to destroy even if remove failed. (amulhern)
+- Use long messages for unittest errors. (amulhern)
+- Fix mdnominate error message. (amulhern)
+- Cosmetic changes for the swapSuggestion function (vpodzime)
+- Break once metadata value is found. (amulhern)
+- Fix issues reported by pyflakes (vpodzime)
+- Remove tests for the sanityCheck (vpodzime)
+- Move _verifyLUKSDevicesHaveKey and its exception to anaconda (vpodzime)
+- Remove sanityCheck functions from blivet sources (vpodzime)
+- Remove an unused closure function (vpodzime)
+- Remove two methods that are never called (vpodzime)
+- Add some tests for blivet.partitioning.addPartition. (dlehman)
+- Add a couple of tests for blivet.partitioning.DiskChunk. (dlehman)
+- Add a DiskFile class for testing partitioning code as a non-root user.
+  (dlehman)
+- Add a contextmanager to create and remove sparse tempfiles. (dlehman)
+- Fix sphinx formatting of code blocks in devicefactory docstrings. (dlehman)
+- Mock selinux when building docs. (dlehman)
+- Include doc files when installing on readthedocs. (dlehman)
+- _maxLabelChars is no longer used by anything (bcl)
+- tests: Add tests for HFSPlus labels (#821201) (bcl)
+- Write a fs label for HFS+ ESP (#821201) (bcl)
+- Mock non-standard modules so we can generate API docs on readthedocs.
+  (dlehman)
+- Split mdadd into separate functions. (amulhern)
+- Refactor mdraid tests. (amulhern)
+- Add a method to extract information about an mdraid array (amulhern)
+- Extend mdadm() to capture output (amulhern)
+- Be more robust in the face of possible changes to mdadm's UUIDs. (amulhern)
+- Factor canonicalize_UUID() into separate method. (amulhern)
+- Add a docstring to mdraid.mdexamine (amulhern)
+- Remove DeviceFormat.probe() method (amulhern)
+- Remove all references to mdMinor in current code base. (amulhern)
+- Generalize the error message for the array level (amulhern)
+- Use super() instead of explicit parent name (amulhern)
+- Remove commented out import. (amulhern)
+- Make docstring more precise. (amulhern)
+- Minor fix of a docstring. (rvykydal)
+- Get rid of partedFlags field. (amulhern)
 
-* Wed Jun 25 2014 Brian C. Lane <bcl@redhat.com> - 0.58-1.R
+* Fri Jul 11 2014 Brian C. Lane <bcl@redhat.com> - 0.61-1
+- Fix conf.py version bumping (bcl)
+- Add some tests for Chunk and Request class hierarchy. (dlehman)
+- Honor the skip list when allocating leftover sectors. (dlehman)
+- A Chunk is done growing when its pool is empty. (dlehman)
+- Don't use integer division to calculate a fraction. (dlehman)
+- Bump version in sphinx config from scripts/makebumpver. (dlehman)
+- Remove spec= from Size usage in intro.rst. (dlehman)
+- Attempt to reset the uuid of the mdraid member device (#1070095) (amulhern)
+- Add new method udev.device_get_md_device_uuid() method (#1070095) (amulhern)
+- Canonicalize mdadm generated UUIDS (#1070095) (amulhern)
+- Add a udev.device_get_md_metadata() method to udev and use it. (amulhern)
+- Change use of METADATA to MD_METADATA. (amulhern)
+- Check for md_level of None (amulhern)
+- Do not convert the result of udev.device_get_md_devices() to int. (amulhern)
+- Add documentation to udev.device_get_md_*() methods. (amulhern)
+- Document udev.device_get_uuid() method. (amulhern)
+- Add a few small tests for mdexamine (amulhern)
+- Add test for raid level descriptor None. (amulhern)
+- Use context manager with assertRaises*() tests. (amulhern)
+- Change uuid parameter to array_uuid (amulhern)
+- Remove udev_ prefix from udev methods. (amulhern)
+- Remove all references to DeviceFormat.majorminor (amulhern)
+- Use add_metaclass instead of with_metaclass. (amulhern)
+- Disable redefined-builtin warning. (amulhern)
+- Use range instead of xrange in generateBackupPassphrase() (amulhern)
+- Add a simple test of generateBackupPassphrase() result format (amulhern)
+- Python3 compatibility (rkuska)
+- Replace python-setuptools-devel BR with python-setuptools (bcl)
+
+* Wed Jul 02 2014 Brian C. Lane <bcl@redhat.com> - 0.60-1
+- Do not use udev info to get the name of the device. (amulhern)
+- Remove unnecessary fanciness about importing devices. (amulhern)
+- Disable some pylint warnings that arise due to anaconda versions. (amulhern)
+- Allow RAID1 on EFI (#788313) (amulhern)
+
+* Thu Jun 26 2014 Brian C. Lane <bcl@redhat.com> - 0.59-1
+- When logging, indicate whether exception was ignored by blivet. (amulhern)
+
+* Wed Jun 25 2014 Brian C. Lane <bcl@redhat.com> - 0.58-1
 - Only import ROOT_PATH if needed (bcl)
 - Add early keyword to setUpBootLoader (#1086811) (bcl)
 - Only log a warning about labeling if something is wrong (#1075136) (amulhern)
@@ -249,7 +551,7 @@ make DESTDIR=%{buildroot} install
 - Add a test for a btrfs error associated with small devices (#1109195)
   (amulhern)
 
-* Thu Jun 19 2014 Brian C. Lane <bcl@redhat.com> - 0.57-1.R
+* Thu Jun 19 2014 Brian C. Lane <bcl@redhat.com> - 0.57-1
 - Make DevicelibsTestCase devices configurable. (amulhern)
 - Use correct parameters in __init__() in subclasses of unittest.TestCase.
   (amulhern)
@@ -515,7 +817,7 @@ make DESTDIR=%{buildroot} install
   (amulhern)
 - Suppress W0201 errors (amulhern)
 - Make signature of Size.__str__ match signature of Decimal.__str__ (amulhern)
-- Do not evaluate % operator in log message arguments (amulhern)
+- Do not evaluate %% operator in log message arguments (amulhern)
 - Remove suite() methods in tests (amulhern)
 - Remove addKeyFromFile() method (amulhern)
 - Import name 'deviceaction' where needed (amulhern)
@@ -686,8 +988,7 @@ make DESTDIR=%{buildroot} install
 - Allow NTFS to be mountable. (#748780) (dshea)
 - Limit the LV size to VG's free space size (vpodzime)
 
-
-* Fri Mar 07 2014 Brian C. Lane <bcl@redhat.com> - 0.44-1.R
+* Fri Mar 07 2014 Brian C. Lane <bcl@redhat.com> - 0.44-1
 - Fix an old typo in zeroing out a PReP partition. (#1072781) (dlehman)
 - Only count with the extra metadata extents in new VGs and LVs (#1072999)
   (vpodzime)
@@ -704,9 +1005,6 @@ make DESTDIR=%{buildroot} install
 - Re-write the DASD storage code. (#1001070) (sbueno+anaconda)
 - Include image install flag when updating from anaconda flags. (#1066008)
   (dlehman)
-
-* Wed Mar  5 2014 Arkady L. Shane <ashejn@russianfedora.ru> - 0.43-1.R
-- apply RFRemix patch to find RFRemix distributions
 
 * Fri Feb 28 2014 Brian C. Lane <bcl@redhat.com> - 0.43-1
 - Include tmpfs mounts in post-install kickstart (#1061063) (mkolman)
