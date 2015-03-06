@@ -43,7 +43,7 @@ storage configuration.
 
 %prep
 %setup -q -n %{realname}-%{version}
-%patch10 -b .rfremix
+%patch10 -p1 -b .rfremix
 
 %build
 make
