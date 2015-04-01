@@ -1,7 +1,7 @@
 Summary:  A python module for system storage configuration
 Name: python-blivet
 Url: http://fedoraproject.org/wiki/blivet
-Version: 1.0.2
+Version: 1.0.5
 Release: 1%{?dist}
 Epoch: 1
 License: LGPLv2+
@@ -60,6 +60,20 @@ make DESTDIR=%{buildroot} install
 %{python_sitelib}/*
 
 %changelog
+* Thu Mar 19 2015 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 1.0.5-1.R
+- Don't specify priority in fstab if -1 (default) is used (#1203709) (vpodzime)
+- Catch GLib.GError in places where we catch StorageError (#1202505) (vpodzime)
+
+* Tue Mar 17 2015 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 1.0.4-1.R
+- Use Size method to perform a Size operation (#1200812) (amulhern)
+- Extend Size.roundToNearest to allow Size units (#1200812) (amulhern)
+- Put previously removed mountExistingSystem() into osinstall.py. (amulhern)
+- Revert "Revive the mountExistingSystem() function and all it needs"
+  (amulhern)
+
+* Fri Mar 13 2015 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 1.0.3-1.R
+- Make sure the device is setup before formatting it (#1196397) (bcl)
+
 * Thu Mar  5 2015 Arkady L. Shane <ashejn@russianfedora.pro> - 1.0.2-1.R
 - apply RFRemix patches
 
