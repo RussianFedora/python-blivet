@@ -1,32 +1,38 @@
 Summary:  A python module for system storage configuration
 Name: python-blivet
 Url: http://fedoraproject.org/wiki/blivet
-Version: 1.0.5
+Version: 1.12.6
 Release: 1%{?dist}
 Epoch: 1
 License: LGPLv2+
 Group: System Environment/Libraries
 %define realname blivet
 Source0: http://github.com/dwlehman/blivet/archive/%{realname}-%{version}.tar.gz
-
-Patch10: blivet-1.0.2-rfremix.patch
+Patch0:	blivet-1.0.2-rfremix.patch
+%global with_python3 1
 
 # Versions of required components (done so we make sure the buildrequires
 # match the requires versions of things).
 %define pykickstartver 1.99.22
+%define pocketlintver 0.4
 %define partedver 1.8.1
-%define pypartedver 2.5-2
+%define pypartedver 3.10.4
 %define e2fsver 1.41.0
 %define utillinuxver 2.15.1
-%define libblockdevver 0.6
+%define libblockdevver 1.1
 
 BuildArch: noarch
 BuildRequires: gettext
 BuildRequires: python-setuptools
+BuildRequires: python3-pocketlint >= %{pocketlintver}
+
+%if 0%{with_python3}
+BuildRequires: python3-devel python3-setuptools
+%endif
 
 Requires: python
 Requires: python-six
-Requires: pykickstart >= %{pykickstartver}
+Requires: python-kickstart >= %{pykickstartver}
 Requires: util-linux >= %{utillinuxver}
 Requires: python-pyudev
 Requires: parted >= %{partedver}
@@ -34,16 +40,58 @@ Requires: pyparted >= %{pypartedver}
 Requires: dosfstools
 Requires: e2fsprogs >= %{e2fsver}
 Requires: lsof
+Requires: libselinux-python
 Requires: libblockdev >= %{libblockdevver}
 Requires: libblockdev-plugins-all >= %{libblockdevver}
+Requires: libselinux-python
+Requires: python-hawkey
+Requires: pygobject3-base
+Requires: %{realname}-data = %{epoch}:%{version}-%{release}
 
 %description
 The python-blivet package is a python module for examining and modifying
 storage configuration.
 
+%package -n %{realname}-data
+Summary: Data for the %{realname} python module.
+
+%description -n %{realname}-data
+The %{realname}-data package provides data files required by the %{realname}
+python module.
+
+%if 0%{with_python3}
+%package -n python3-%{realname}
+Summary: A python3 package for examining and modifying storage configuration.
+Requires: python3
+Requires: python3-six
+Requires: python3-kickstart
+Requires: python3-pyudev
+Requires: parted >= %{partedver}
+Requires: python3-pyparted >= %{pypartedver}
+Requires: libselinux-python3
+Requires: libblockdev >= %{libblockdevver}
+Requires: libblockdev-plugins-all >= %{libblockdevver}
+Requires: util-linux >= %{utillinuxver}
+Requires: dosfstools
+Requires: e2fsprogs >= %{e2fsver}
+Requires: lsof
+Requires: python3-hawkey
+Requires: python3-gobject-base
+Requires: %{realname}-data = %{epoch}:%{version}-%{release}
+
+%description -n python3-%{realname}
+The python3-%{realname} is a python3 package for examining and modifying storage
+configuration.
+%endif
+
 %prep
 %setup -q -n %{realname}-%{version}
-%patch10 -p1 -b .rfremix
+%patch0 -p1 -b .rfremix
+
+%if 0%{?with_python3}
+rm -rf %{py3dir}
+cp -a . %{py3dir}
+%endif
 
 %build
 make
@@ -53,35 +101,514 @@ rm -rf %{buildroot}
 make DESTDIR=%{buildroot} install
 %find_lang %{realname}
 
-%files -f %{realname}.lang
+%if 0%{?with_python3}
+pushd %{py3dir}
+make PYTHON=%{__python3} DESTDIR=%{buildroot} install
+popd
+%endif
+
+%files
 %defattr(-,root,root,-)
 %license COPYING
 %doc README ChangeLog examples
 %{python_sitelib}/*
 
+%files -n %{realname}-data -f %{realname}.lang
+
+%if 0%{?with_python3}
+%files -n python3-%{realname}
+%license COPYING
+%doc README ChangeLog examples
+%{python3_sitelib}/*
+%endif
+
 %changelog
-* Thu Mar 19 2015 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 1.0.5-1.R
+* Tue Oct 13 2015 Arkady L. Shane <ashejn@russianfedora.ru> - 1.12.6-1.R
+- RFRemixify
+
+* Thu Oct 08 2015 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 1.12.6-1
+- Fix calling non-existing method (#1252902) (jkonecny)
+
+* Thu Sep 24 2015 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 1.12.5-1
+- Convert float to str for better precision in Size (jkonecny)
+- Don't teardown FSs when searching for installed systems (#1252902) (jkonecny)
+
+* Mon Sep 14 2015 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 1.12.4-1
+- Make sure devices are torn down in findExistingInstallations (#1261439)
+  (vpodzime)
+
+* Thu Sep 10 2015 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 1.12.3-1
+- Mount efivarfs during os installation (#1260799) (bcl)
+- Add method for estimated size of formated device (#1224048) (jkonecny)
+- Add support for mul,div,sub,add by float to Size (jkonecny)
+- Exclude isodir from valid disks (jkonecny)
+- fix typo in NoDevice: updateSize not udpateSize (awilliam)
+
+* Thu Sep 03 2015 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 1.12.2-1
+- Fix currentSize for extended partitions (#1254899) (vtrefny)
+- Catch problems with chassis vendor names (#1256072) (bcl)
+- Don't teardown protected devices (jkonecny)
+- Do not propagate low-level blockdev.CryptoError when setting up LUKS
+  (#1253925) (vpodzime)
+- Fix the name of the variable specifying requested libblockdev plugins
+  (#1256273) (jstodola)
+
+* Thu Aug 20 2015 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 1.12.1-1
+- Change labelFormatOK to classmethods (vtrefny)
+- Remove the cacheRequest kwarg for thin(pool) LVs (#1254567) (vpodzime)
+- Fix copy method (#1254135) (bcl)
+- Add OSError to list of errors in updateSysfsPath (#1252949) (bcl)
+- Make sure LV's properties reporting size return a Size instance (#1253787)
+  (vpodzime)
+- Use device name from udev only if it's available (#1252052) (vpodzime)
+- Fix _unalignedMaxPartSize for logical partitions (#1250890) (vtrefny)
+- Allow aligning free regions to disk grainSize (#1244671) (vtrefny)
+- Add test for getFreeSpace aligning (vtrefny)
+- Change zanata.xml to match new f23-branch name. (sbueno+anaconda)
+
+* Fri Aug 07 2015 Brian C. Lane <bcl@redhat.com> - 1.12-1
+- Remove unusable free regions from list when setting up growth. (dlehman)
+- Merge pull request #190 from vpodzime/master-lvm_cache_creation (dlehman)
+- Merge pull request #194 from dwlehman/mount-cache-symlinks (dlehman)
+- Merge pull request #193 from dwlehman/md-fwraid-detection (dlehman)
+- Add unit tests to cover md containers. (dlehman)
+- Minor cleanup of blivet.formats.fs.BTRFS._preSetup. (dlehman)
+- Fix isDisk and partitionable properties for md fwraid. (dlehman)
+- Don't use MD_DEVNAME as device name for md partitions. (dlehman)
+- Use udev to find name of md members' container. (dlehman)
+- Call superclass ctor a bit later to get size attrs set up first. (dlehman)
+- updateSize for md containers is a no-op. (dlehman)
+- Fix UnboundLocalError in FSMinSize (#1249304) (vtrefny)
+- Fix mount cache resolution of devices with symlinks. (#1247803) (dlehman)
+- Add kwarg to udev.resolve_devspec to return canonical device name. (dlehman)
+- Use slow as well as fast PVs for cached LV's non-cache part (vpodzime)
+- Make VG determination in Blivet.newLV() less cryptic (vpodzime)
+- Reserve space for LVM cache(s) when growing LVM requests (vpodzime)
+- Create cached LVs before non-cached LVs (vpodzime)
+- Add support for LVM cache creation to LVM device classes (vpodzime)
+- Add generic class for cache creation requests (vpodzime)
+- Two minor fixes in LVMLogicalVolumeDevice's constructor's docstring
+  (vpodzime)
+
+* Fri Jul 31 2015 Brian C. Lane <bcl@redhat.com> - 1.11-1
+- Put MDRaidArrayDevice.devices back, but mark it as deprecated. (dlehman)
+- Skip tearing down devices when unmounting filesystems (bcl)
+- Include details when umount fails (bcl)
+- Merge pull request #183 from dwlehman/tests-20150728 (dlehman)
+- Merge pull request #182 from dwlehman/devicefactory-20150728 (dlehman)
+- Merge pull request #184 from dwlehman/misc-20150728 (dlehman)
+- Enable unit test suite in jenkins. (dlehman)
+- Disable image-backed unit tests temporarily. (dlehman)
+- Add some tests for DeviceFactory. (dlehman)
+- Do basic child accounting when replacing a parent. (dlehman)
+- Set new raid level on correct device in MDFactory. (dlehman)
+- Fix container member switching when toggling member encryption. (dlehman)
+- Don't adjust actual lv size based on md metadata space requirements.
+  (dlehman)
+- Merge pull request #57 from vpodzime/master-luks_npass (vpodzime)
+- Fix names of the keyword arguments for luks_add_key and luks_remove_key
+  (vpodzime)
+- Make a better effort to clean up loop devices on failure. (dlehman)
+- Correctly get current size of disk files. (dlehman)
+- Don't warn about missing UUIDs for non-existent containers. (dlehman)
+- Only check disks for membership in a multipath. (dlehman)
+- Only update md array name if MD_DEVNAME is set. (#1212073) (dlehman)
+- Weed out unresolved macros in the check-requires target. (clumens)
+- Merge pull request #126 from vpodzime/master-translations_subpackage
+  (vpodzime)
+- Put translations into a subpackage shared by Python 2 and 3 (vpodzime)
+- Require pygobject3-base instead of pygobject (#1246842) (dshea)
+- Add method to list primary partitions (vtrefny)
+- Merge pull request #179 from dwlehman/size-followups (dlehman)
+- Fix test for failure to find space for device. (dlehman)
+- Make sure factory target size is within the limits of the fstype. (dlehman)
+- Unset obsolete format before updating device size. (dlehman)
+- Make sure size is numeric before comparing it with format minimum. (dlehman)
+- Don't constrain thin lv sizes to vg free space. (dlehman)
+
+* Fri Jul 24 2015 Brian C. Lane <bcl@redhat.com> - 1.10-1
+- Merge pull request #177 from AdamWill/1245446 (dlehman)
+- use floor division in calculating amount to reclaim (#1245446) (awilliam)
+- Remember to use the shell command when calling external stuff in Makefile.
+  (clumens)
+- Add a new makefile target that does everything needed for jenkins. (clumens)
+- Add missing gobject introspection Requires (bcl)
+- Add install-requires Makefile target (bcl)
+- Update md and btrfs unit tests to run with recent size changes. (dlehman)
+- Set format attr after super ctor for md. (dlehman)
+- Account for container layer in md fwraid array properties. (dlehman)
+- Ensure format is a DeviceFormat during initialization. (dlehman)
+- Set target size when setting other size attrs. (dlehman)
+- Use 'members' attribute to list RAID member devices. (dlehman)
+- BTRFS subvolumes shouldn't inherit from RAIDDevice. (dlehman)
+- Require a non-empty member set for md disks. (dlehman)
+- Mock mount cache while running action tests. (dlehman)
+- Account for recent lvm snapshot format changes in tests. (dlehman)
+- Bump size of non-existent devices to format minimum. (dlehman)
+- Don't pass createOptions along when creating the btrfs device. (clumens)
+- Merge pull request #59 from vpodzime/master-tab_tab (vpodzime)
+- Implement the __dir__ method of the LazyImportObject class (vpodzime)
+
+* Thu Jul 16 2015 Brian C. Lane <bcl@redhat.com> - 1.9-1
+- Apply default size for new partition earlier in constructor. (dlehman)
+- Don't pass model to md fwraid constructor. (#1242610) (dlehman)
+
+* Fri Jul 10 2015 Brian C. Lane <bcl@redhat.com> - 1.8-1
+- Add a bunch more gi.require_version calls (dshea)
+- Merge pull request #170 from dwlehman/size-cleanups (dlehman)
+- Add unit tests for device size setters and getters. (dlehman)
+- Only return target size if it is set to something meaningful. (dlehman)
+- Validate new formats against current device size. (dlehman)
+- Device size checks do not apply to existing devices. (dlehman)
+- Make sure subclasses size setters use the base setter as appropriate.
+  (dlehman)
+- x-initrd.mount should only be set for /var (#1238603) (bcl)
+- There's a python3 anaconda now, so ditch the temporary false positives.
+  (clumens)
+- Fix a syntax error caused by my previous commit. (clumens)
+- Fix a duplicate key caused by patch merging. (clumens)
+- Add support for specifying arbitrary mkfs options. (clumens)
+- Align free regions before choosing one. (dlehman)
+- Align partition sizes earlier in the allocation process. (dlehman)
+- Don't crash on cleanup with DASDs or iSCSI devices present. (#1166506)
+  (dlehman)
+- Make check-requires errors more readable. (dshea)
+- Merge pull request #166 from dwlehman/autopart-snapshot-branch (dlehman)
+- Default to a string when sorting mountpoints in FSSet.umountFilesystems.
+  (dlehman)
+- Fix order of arguments to blockdev.thsnapshotcreate. (dlehman)
+- Snapshot format exists upon snapshot creation. (dlehman)
+- Improve format handling for lvm snapshots. (dlehman)
+- Merge pull request #160 from dwlehman/lookup-method-deprecations (dlehman)
+- Deprecate some little-used devicetree lookup methods. (dlehman)
+- Add a decorator to mark deprecated functions/methods. (dlehman)
+- Log python warnings, including DeprecationWarning. (dlehman)
+- Catch and relay more exception types from the iscsi process (dshea)
+- Use the pipes as contextmanagers to ensure they are closed (dshea)
+- Close the unused half of pipes after the fork (dshea)
+
+* Fri Jun 26 2015 Brian C. Lane <bcl@redhat.com> - 1.7-1
+- Merge pull request #167 from mulkieran/master-format-copy-b (mulkieran)
+- Merge pull request #156 from vpodzime/master-lvm_cache_actually (vpodzime)
+- Add cache support to the LVMLogicalVolumeDevice class (vpodzime)
+- Copy all DeviceFormat objects using deepcopy. (amulhern)
+- Make use of FSTask and FSUnimplementedTask in FS* tasks. (amulhern)
+- Add an abstract parent of all filesystem tasks. (amulhern)
+- Merge pull request #162 from dwlehman/storage-device-format-type-consistency
+  (dlehman)
+- Merge pull request #138 from dwlehman/partitionable-md (dlehman)
+- Document the fact that StorageDevice.format is always a DeviceFormat.
+  (dlehman)
+- Ignore some interruptible system call warnings (dshea)
+- Retry interruptible calls (dshea)
+- Ignore EINTR from os.close instead of retrying the call (dshea)
+- Add kwargs to eintr_retry_call (dshea)
+- Specify required version of GI-imported packages (vpodzime)
+- Add classes for LVM cache related functionality (vpodzime)
+- Add generic classes for cache and cache stats (vpodzime)
+- Merge pull request #149 from vpodzime/master-lvm_cache (vpodzime)
+- Implement the support for resizing internal metadata LVs of thin pools
+  (vpodzime)
+- Use relations between LVs to determine parent LV (vpodzime)
+- Make Blivet.lvs return all LVs not just traditional/thick LVs (vpodzime)
+- Accept both list and ParentList when checking LVs parents (vpodzime)
+- Create and use internal LVs instead of static values (vpodzime)
+- Add classes for the internal LVs of various types (vpodzime)
+- Merge pull request #137 from dwlehman/md-boot-metadata-branch (dlehman)
+- Treat existing md arrays whose members are all disks like disks. (dlehman)
+- Handle formatting after adding devices from format handlers. (dlehman)
+- Merge pull request #158 from mulkieran/master-target-size (mulkieran)
+- Move parents checking and update into a seprarate methods (vpodzime)
+- Rearrange and group some of the StorageDevice's methods/properties (vpodzime)
+- Don't crash when processing cached LVs (vpodzime)
+- Make roundToNearest() slightly more robust. (amulhern)
+- Extend Size.convertTo() to work with arbitrary Size() values. (amulhern)
+- Changes to FS._setTargetSize(). (amulhern)
+- Increase ext4 maximum size from 16 TiB to 1 EiB (#1231049) (bcl)
+- Merge pull request #155 from atodorov/fix_issue_154 (mulkieran)
+- Use len of set to check for duplicates in list of packages. (atodorov)
+- Merge pull request #153 from mulkieran/master-task-names (mulkieran)
+- Omit completely pointless setUp method. (amulhern)
+- Make a size refer to a Size object. (amulhern)
+- Add __str__ method to various subclasses of Task. (amulhern)
+- Don't pass unused mountpoint dict to preCommitFixup. (dlehman)
+- Use the default md metadata version for everything except /boot/efi.
+  (dlehman)
+
+* Wed Jun 10 2015 Brian C. Lane <bcl@redhat.com> - 1.6-1
+- Fix indentation in action_test.py (dlehman)
+- Merge pull request #133 from atodorov/fix_deprecation_warnings (mulkieran)
+- Merge pull request #147 from vojtechtrefny/master_fix_undo_resize (vtrefny)
+- Fix setting original size for format resize action. (#1225352) (vtrefny)
+- Make unit test assertion expressions fully Python2/3 compatible. (atodorov)
+- Merge pull request #151 from mulkieran/master-120 (mulkieran)
+- Merge pull request #122 from atodorov/remove_doctest (mulkieran)
+- Parameterize Makefile test targets on Python version. (atodorov)
+- Merge pull request #148 from mulkieran/master-132 (mulkieran)
+- Merge pull request #144 from mulkieran/master-128 (mulkieran)
+- Remove facilities for running tests as standalone modules. (atodorov)
+- Include automatic and manual test documentation. (atodorov)
+- Remove an accidental variable assignment in LVMLogicalVolumeDevice (vpodzime)
+- Merge pull request #143 from mulkieran/master-134 (mulkieran)
+- Remove two files in tests directory. (atodorov)
+- Fix typo in docstring. (atodorov)
+- Merge pull request #112 from vpodzime/master-fixed_maps (vpodzime)
+- Merge pull request #129 from mulkieran/master-keepers-c (mulkieran)
+- Merge pull request #135 from mulkieran/master-test-fixes (mulkieran)
+- Convert bytes value to str. (amulhern)
+- Change new format lookup name from "msdos" to "disklabel". (amulhern)
+- Get rid of pointless test case about arguments for labeling apps. (amulhern)
+- Do not raise KeyError if ID_PART_ENTRY_DISK is missing. (amulhern)
+- Manage backing store more independently in loop backed test cases. (amulhern)
+- Pass floats as string to Decimal constructor everywhere. (amulhern)
+- Fix a bug in reading a size specification with a radix in the numeric part.
+  (amulhern)
+- remove mention of doctest b/c target was removed in
+  fed53d969af0eddaeeca58cdf3e40916497aa305 (atodorov)
+- Beware of Python 3's version of the map() built-in function (vpodzime)
+
+* Thu May 28 2015 Brian C. Lane <bcl@redhat.com> - 1.5-1
+- Get rid of an unused import in blivet.zfcp (sbueno+anaconda)
+- Make appropriate changes to adapt for s390 libblockdev plugin.
+  (sbueno+anaconda)
+- Drop check from the release build target (bcl)
+- Merge pull request #127 from vpodzime/master-libblockdev_1.0 (vpodzime)
+- Adapt to the new libblockdev initialization API (vpodzime)
+- Merge pull request #111 from dwlehman/disk-model-branch (dlehman)
+- Store vendor/model information for DiskDevice instances. (dlehman)
+- Require new version of pyparted with Python 3 related fixes (vpodzime)
+- Merge pull request #114 from vojtechtrefny/fix_lvmsnapshot_size2 (vtrefny)
+- Merge pull request #118 from mulkieran/master-hawkey (mulkieran)
+- Use python-hawkey instead of rpm-python. (amulhern)
+- Add a dead simple test for some basic task and resource functionality.
+  (amulhern)
+- Use COW device to get actual size of LVM snapshots (vtrefny)
+
+* Mon May 18 2015 Brian C. Lane <bcl@redhat.com> - 1.4-1
+- Workaround for chrooted mountpoints  (#1217578) (vtrefny)
+- Merge pull request #116 from mulkieran/master-gerror (mulkieran)
+- Filter GLib.GError instead of GLib.Error in pylint false positives.
+  (amulhern)
+- Merge pull request #113 from mulkieran/master-tasks-20150513 (mulkieran)
+- Guard tests against device support being missing. (amulhern)
+- Add checks for filesystem availability in selinux tests. (amulhern)
+- Fix some small mistakes in tests using availability information. (amulhern)
+- Get rid of abitrary _resizable variable in tests. (amulhern)
+- Don't use utilsAvailable to skip tests. (amulhern)
+- Treat a missing plugin as an OK situation. (amulhern)
+- Use availability information in device actions. (amulhern)
+- Add a check to determine whether the device type is supported. (amulhern)
+- If external dependencies are unavailable, cannot support RAID levels.
+  (amulhern)
+- Add availability information to devicelibs files. (amulhern)
+- Track external dependencies in devices. (amulhern)
+- If lvm is not available, do not do the filtering. (amulhern)
+- Add availability checking to non-FS formats. (amulhern)
+- Use filesystem tasks in filesystem. (amulhern)
+- Add filesystem tasks to tasks directory. (amulhern)
+- Add tasks infrastructure to tasks directory. (amulhern)
+- Add error to detect errors in discovering availability info. (amulhern)
+- Add errors about reading and writing labels to error heirarchy. (amulhern)
+- Make assignments that override abstract properties into simple attributes.
+  (amulhern)
+- Move kernel_filesystems functionality into a little library. (amulhern)
+- Make labeling(), relabels(), and labelFormatOK() instance methods. (amulhern)
+- Merge pull request #108 from vojtechtrefny/progress_callbacks (vtrefny)
+- Merge pull request #109 from mulkieran/master-btrfs-c (mulkieran)
+- Set a subvolspec format args when making a new BTRFS volume. (amulhern)
+- Cache data obtained from /proc/self/mountinfo. (amulhern)
+- Add progress report callback for action processing (vtrefny)
+- Do not have two ignored variables when one will do. (amulhern)
+- Fix a typo in comment. (amulhern)
+- Do not use type() in makebumpver. (clumens)
+- Merge pull request #100 from mulkieran/master-lvm-a (mulkieran)
+- Merge pull request #104 from mulkieran/master-1139222 (mulkieran)
+- Include LUKSDevice information in kickstart data (#1139222) (amulhern)
+- Un-escape '-'s in names or paths for _all_ lvm lv or vgs. (amulhern)
+- Fix a few miscellaneous pylint-caught problems. (clumens)
+- Only give Size objects a __div__ method under python2. (clumens)
+- Protect against calling testMount on an object that may not have it.
+  (clumens)
+- Add a bunch of false positives to make pylint succeed. (clumens)
+- e.message -> str(e) (clumens)
+- Disable a pointless override warning. (clumens)
+- Ignore the environment-modify pylint warnings for size_test.py. (clumens)
+- blockdevError -> BlockDevError (clumens)
+- Remove uses of the string module we don't need, ignore warnings on those we
+  do. (clumens)
+- unicode isn't undefined on the python2 code paths. (clumens)
+- Use eintr_retry_call from anaconda. (clumens)
+- Move blivet to using pocketlint. (clumens)
+- Merge pull request #97 from mulkieran/master-1072060 (mulkieran)
+- Merge pull request #93 from vojtechtrefny/fix_active_parted (vtrefny)
+- If the parent volume has a label, use it in subvol's kickstart (#1072060)
+  (amulhern)
+- Merge pull request #94 from mulkieran/master-raid (mulkieran)
+- Allow adding new partitions to disks with active devices (#1212841) (vtrefny)
+- Fix "anaconda hangs while trying to discover iscsi..." (#1166652) (jkonecny)
+- Move definition of _level attribute above super-constructor call. (amulhern)
+- Fix status for LVMPhysicalVolume format (vtrefny)
+
+* Wed Apr 22 2015 Brian C. Lane <bcl@redhat.com> - 1.3-1
+- fix conf.py pylint errors (bcl)
+- Fix BlockDev import in populator.py (bcl)
+- Prevent pylint from going crazy because of libblockdev's ErrorProxy
+  (vpodzime)
+- Make use of the new libblockdev error reporting (vpodzime)
+- Add libselinux-python to package dependencies (#1211834) (vtrefny)
+- Introduce a new doReqPartition method that is similar to doAutoPartition.
+  (clumens)
+- Merge pull request #81 from mulkieran/master-mount-options (mulkieran)
+- Merge pull request #66 from vpodzime/master-py3_final (martin.kolman)
+- Encode input for os.write() (mkolman)
+- Build the python3-blivet subpackage (vpodzime)
+- Do not modify dict while iterating over its values (vpodzime)
+- Do not try to compare strings and Nones when sorting mountpoints (vpodzime)
+- Always return strings from regular capture output run functions (mkolman)
+- Do not use variable from an inner comprehension in tests (vpodzime)
+- Implement and test Python 3 division for the Size class (vpodzime)
+- Replace python 2 build-in-function cmp() with custom method (vtrefny)
+- Do not rely on __sub__ being implemented as __add__ (-1)* (vpodzime)
+- Transform our compare functions into key functions and use these instead
+  (vpodzime)
+- Fix the size_test to stop using byte strings (vpodzime)
+- Do not define unit strings as byte strings (vpodzime)
+- Do not pass context to Decimal numeric operations (vpodzime)
+- Don't call object's (as a class) __new__ with extra arguments (vpodzime)
+- Make translation to lowerASCII Python[23]-compatible (vpodzime)
+- Replace __import__ call with importlib.import_module (vpodzime)
+- In FS._postSetup() check the mountpoint options that were actually used.
+  (amulhern)
+- Add kwargs to unmount and move mountpoint check into _preSetup (bcl)
+- Do not try importing hidden/backup files as formats (vpodzime)
+- Add back DeviceTree's support for saving LUKS passphrases (vpodzime)
+- Do not try to stat FileDevice's path if it doesn't exist (vpodzime)
+- Merge pull request #76 from dwlehman/unusable-storage-branch (dlehman)
+- Add error handling around storageInitialize for unusable setups. (dlehman)
+- Include suggestions in error classes for unusable storage configurations.
+  (dlehman)
+- Use partially corrupt gpt disklabels. (dlehman)
+- Consolidate common code in DeviceFormat class methods. (dlehman)
+- Update get_mount_paths to use mountsCache (bcl)
+- Add multiple mountpoint handling to MountsCache (bcl)
+- Remove obsolete FIXME from FS.status (bcl)
+- Check to see if mountpoint is already mounted (bcl)
+- Add isMountpoint to MountsCache (bcl)
+- Add ability to unmount specific mountpoints (bcl)
+- Fix pylint errors for six.moves import (vtrefny)
+- Merge pull request #72 from vojtechtrefny/picklable-size (vpodzime)
+- Merge pull request #74 from mulkieran/master-trivia (mulkieran)
+- Fix two instances where check_equal() returned True incorrectly. (amulhern)
+- Fix typo in 66f2ddb11e85ec6f48535d670dd6f24cb60cbe55. (amulhern)
+- Make sure installer_mode is reset to original value. (amulhern)
+- Test for Size pickling support (vtrefny)
+- Pickling support for Size. (vtrefny)
+- Disable pylint bad-super-call in MDRaidArrayDevice.updateSize. (dlehman)
+- Merge pull request #68 from dwlehman/parted-device-branch (dlehman)
+- Require reallocation after changing an allocated partition's size. (dlehman)
+- Move mediaPresent out of Device and into StorageDevice. (dlehman)
+- Don't use parted.Device to obtain size info. (dlehman)
+- Merge pull request #70 from mulkieran/master-1208536 (mulkieran)
+- Prepend /sys to sysfs path for udev lookup (#1208536) (amulhern)
+- Fall back on mdadm info if udev info is missing for the array (#1208536)
+  (amulhern)
+- Catch DeviceError as well as ValueError (#1208536) (amulhern)
+- Make an MDContainerDevice if that is the right model (#1208536) (amulhern)
+- Change raid variable name to raid_items (#1208536) (amulhern)
+- Fix swapped args to processActions. (dlehman)
+- Merge pull request #63 from dwlehman/disk-selection-branch (dlehman)
+- Use VGname-LVname as key for LVinfo cache (vpodzime)
+- Add back DeviceTree's methods and properties used from the outside (vpodzime)
+- Wrap keys() with a list so that the dictionary can be changed (martin.kolman)
+- Add a method to list disks related by lvm/md/btrfs container membership.
+  (dlehman)
+- Make getDependentDevices work with hidden devices. (dlehman)
+
+* Fri Mar 27 2015 Brian C. Lane <bcl@redhat.com> - 1.2-1
+- Fix pylint unused variable warnings (vtrefny)
+- Add test for mountpoints (vtrefny)
+- Replace _mountpoint with systemMountpoint in other modules (vtrefny)
+- New method to handle nodev filesystems (vtrefny)
+- Add dynamic mountpoint detection support (vtrefny)
+- New method to compute md5 hash of file (vtrefny)
+- Add information about subvolume to BTRFS format (vtrefny)
 - Don't specify priority in fstab if -1 (default) is used (#1203709) (vpodzime)
 - Catch GLib.GError in places where we catch StorageError (#1202505) (vpodzime)
-
-* Tue Mar 17 2015 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 1.0.4-1.R
+- slave_dev is undefined here, use slave_devices[0] instead. (clumens)
+- Clean out the mock chroot before attempting to run the rest of the test.
+  (clumens)
+- Move recursiveRemove from Blivet to DeviceTree. (dlehman)
+- Factor out adding of sysfs slave (parent) devices into its own method.
+  (dlehman)
+- Add a __str__ method to DeviceTree. (dlehman)
+- Allow changing the names of existing devices. (dlehman)
+- Remove redundant block for adding fwraid member disks. (dlehman)
+- Return a device from addUdevLVDevice if possible. (dlehman)
+- Pass a sysfs path to MultipathDevice constructor from Populator. (dlehman)
+- Resolve md names in udev info. (dlehman)
+- LVMVolumeGroupDevice format should be marked as immutable. (dlehman)
+- Don't catch and re-raise device create exceptions as DeviceCreateError.
+  (dlehman)
+- Call superclass _preCreate from BTRFSVolumeDevice._preCreate. (dlehman)
+- Move code that populates the device tree into a new class and module.
+  (dlehman)
+- Move action list management into a separate class and module. (dlehman)
+- Put an __init__.py in devices_tests directory. (amulhern)
+- Require the Python 2 version of pykickstart (#1202255) (vpodzime)
 - Use Size method to perform a Size operation (#1200812) (amulhern)
 - Extend Size.roundToNearest to allow Size units (#1200812) (amulhern)
+- Move code that populates the device tree into a new class and module.
+  (dlehman)
+- Move action list management into a separate class and module. (dlehman)
+- Remove a pointless override. (amulhern)
+- Display the name of the overridden ancestor in error message. (amulhern)
+- Check for simple function calls in pointless overrides. (amulhern)
+- Simplify supported methods in FS.py. (amulhern)
+- Make hidden property use superclass method where possible. (amulhern)
+- Simplify some methods in DeviceFormat class. (amulhern)
+- Do supercall in BTRFSVolumeDevice.formatImmutable. (amulhern)
+- Add a comment to supported property. (amulhern)
+- Get rid of some very old commented out code. (amulhern)
+- Put all mock results into the top-level source dir. (clumens)
+- Spell TestCase.teardown correctly as tearDown(). (amulhern)
+- Make testMount() check return value of util.mount(). (amulhern)
+- Remove unused fs_configs. (amulhern)
+- Remove side-effects from mountType property. (amulhern)
+- Do not make the mountpoint directory in fs.FS.mount(). (amulhern)
+- Mount should not be satisfied with anything less than a directory. (amulhern)
+- Do not return doFormat() value. (amulhern)
 - Put previously removed mountExistingSystem() into osinstall.py. (amulhern)
 - Revert "Revive the mountExistingSystem() function and all it needs"
   (amulhern)
-
-* Fri Mar 13 2015 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 1.0.3-1.R
 - Make sure the device is setup before formatting it (#1196397) (bcl)
+- Use %%d format string for every value that should be an integer decimal.
+  (amulhern)
+- Robustify PartitionDevice._wipe() method. (amulhern)
+- Fix up scientific notation _parseSpec() tests. (amulhern)
+- Make size._parseSpec a public method. (amulhern)
+- Simplify StorageDevice.disks. (amulhern)
+- Simplify StorageDevice.growable. (amulhern)
+- Simplify and correct StorageDevice.packages property. (amulhern)
+- Remove services infrastructure from devices and formats. (amulhern)
+- Split devices tests out into a separate directory. (amulhern)
+- Fix dd wipe call. (exclusion)
+- Add a script to rebase and merge pull requests (dshea)
+- Add pylint false positive to list of pylint false positives. (amulhern)
+- Change all instances of GLib.Error to GLib.GError. (amulhern)
+- Sort pylint-false-positives using sort's default options with LC_ALL=C.
+  (amulhern)
+- Add ability to match scientific notation in strings. (amulhern)
 
-* Thu Mar  5 2015 Arkady L. Shane <ashejn@russianfedora.pro> - 1.0.2-1.R
-- apply RFRemix patches
-
-* Wed Mar 04 2015 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 1.0.2-1
+* Fri Mar 06 2015 Brian C. Lane <bcl@redhat.com> - 1.1-1
+- Add scratch, scratch-bumpver and rc-release targets. (bcl)
+- Add --newrelease to makebumpver (bcl)
+- Add po-empty make target (bcl)
 - Revive the mountExistingSystem() function and all it needs (vpodzime)
-
-* Tue Mar 03 2015 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 1.0.1-1
+- Switch translations to use Zanata (bcl)
+- Set EFIFS._check to True so that it gets correct fspassno (#1077917)
+  (amulhern)
 - Use format string and arguments for logging function (vpodzime)
+- Merge pull request #28 from vpodzime/master-libblockdev (vratislav.podzimek)
 - Do not restrict MDRaidArrayDevice's memberDevices to type int (vpodzime)
 - Adapt better to libblockdev's md_examine data (vpodzime)
 - Set TmpFS._resizable to False. (amulhern)
@@ -92,11 +619,14 @@ make DESTDIR=%{buildroot} install
 - Add TmpFS._getExistingSize() method. (amulhern)
 - Make _getExistingSize() method more generally useful. (amulhern)
 - Remove _getExistingSize() methods with body pass. (amulhern)
-- Tidy up the definition of the device property throughout formats package. (amulhern)
-- Add a test to check properties of device paths assigned to formats. (amulhern)
+- Tidy up the definition of the device property throughout formats package.
+  (amulhern)
+- Add a test to check properties of device paths assigned to formats.
+  (amulhern)
 - Set TmpFSDevice object's _formatImmutable attribute to True. (amulhern)
 - Remove no longer needed requires (vpodzime)
-- Filter out pylint's "No name 'GLib' in module 'gi.repository'" messages (vpodzime)
+- Filter out pylint's "No name 'GLib' in module 'gi.repository'" messages
+  (vpodzime)
 - Add a static method providing list of available PE sizes (vpodzime)
 - Use BlockDev's crypto plugin to do LUKS escrow (vpodzime)
 - Use BlockDev's DM plugin to work with DM RAID sets (vpodzime)
@@ -113,8 +643,6 @@ make DESTDIR=%{buildroot} install
 - Use BlockDev's mpath plugin instead of devicelibs/mpath.py (vpodzime)
 - First little step towards libblockdev (vpodzime)
 - Move the Blivet class into its own module (vpodzime)
-- Fix txconfig typo. (sbueno+anaconda)
-- Update txconfig for f22-branch. (sbueno+anaconda)
 - Use a safer method to get a dm partition's disk name. (dlehman)
 - Be more careful about overwriting device.originalFormat. (#1192004) (dlehman)
 
