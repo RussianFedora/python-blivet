@@ -1,7 +1,7 @@
 Summary:  A python module for system storage configuration
 Name: python-blivet
 Url: http://fedoraproject.org/wiki/blivet
-Version: 1.12.7
+Version: 1.12.8
 Release: 1%{?dist}
 Epoch: 1
 License: LGPLv2+
@@ -123,6 +123,10 @@ popd
 %endif
 
 %changelog
+* Wed Oct 21 2015 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 1.12.8-1.R
+- Check if device is a DASDDevice in make_unformatted_dasd list. (#1273009)
+  (sbueno+anaconda)
+
 * Thu Oct 15 2015 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 1.12.7-1.R
 - Deprecate createSubVolumes method (vtrefny)
 - Change btrfs.do_self_mount to contextmanager (#1266673) (vtrefny)
