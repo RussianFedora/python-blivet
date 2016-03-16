@@ -1,20 +1,18 @@
 Summary:  A python module for system storage configuration
 Name: python-blivet
 Url: http://fedoraproject.org/wiki/blivet
-Version: 1.12.8
+Version: 1.19
 Release: 1%{?dist}
 Epoch: 1
 License: LGPLv2+
 Group: System Environment/Libraries
 %define realname blivet
 Source0: http://github.com/dwlehman/blivet/archive/%{realname}-%{version}.tar.gz
-Patch0:	blivet-1.0.2-rfremix.patch
-%global with_python3 1
+Patch0: blivet-1.0.2-rfremix.patch
 
 # Versions of required components (done so we make sure the buildrequires
 # match the requires versions of things).
 %define pykickstartver 1.99.22
-%define pocketlintver 0.4
 %define partedver 1.8.1
 %define pypartedver 3.10.4
 %define e2fsver 1.41.0
@@ -23,12 +21,8 @@ Patch0:	blivet-1.0.2-rfremix.patch
 
 BuildArch: noarch
 BuildRequires: gettext
-BuildRequires: python-setuptools
-BuildRequires: python3-pocketlint >= %{pocketlintver}
-
-%if 0%{with_python3}
+BuildRequires: python2-devel python2-setuptools
 BuildRequires: python3-devel python3-setuptools
-%endif
 
 Requires: python
 Requires: python-six
@@ -41,7 +35,7 @@ Requires: dosfstools
 Requires: e2fsprogs >= %{e2fsver}
 Requires: lsof
 Requires: libselinux-python
-Requires: libblockdev >= %{libblockdevver}
+Requires: python2-blockdev >= %{libblockdevver}
 Requires: libblockdev-plugins-all >= %{libblockdevver}
 Requires: libselinux-python
 Requires: python-hawkey
@@ -59,7 +53,6 @@ Summary: Data for the %{realname} python module.
 The %{realname}-data package provides data files required by the %{realname}
 python module.
 
-%if 0%{with_python3}
 %package -n python3-%{realname}
 Summary: A python3 package for examining and modifying storage configuration.
 Requires: python3
@@ -69,7 +62,7 @@ Requires: python3-pyudev
 Requires: parted >= %{partedver}
 Requires: python3-pyparted >= %{pypartedver}
 Requires: libselinux-python3
-Requires: libblockdev >= %{libblockdevver}
+Requires: python3-blockdev >= %{libblockdevver}
 Requires: libblockdev-plugins-all >= %{libblockdevver}
 Requires: util-linux >= %{utillinuxver}
 Requires: dosfstools
@@ -82,97 +75,188 @@ Requires: %{realname}-data = %{epoch}:%{version}-%{release}
 %description -n python3-%{realname}
 The python3-%{realname} is a python3 package for examining and modifying storage
 configuration.
-%endif
 
 %prep
 %setup -q -n %{realname}-%{version}
 %patch0 -p1 -b .rfremix
 
-%if 0%{?with_python3}
 rm -rf %{py3dir}
 cp -a . %{py3dir}
-%endif
 
 %build
 make
 
 %install
 rm -rf %{buildroot}
-make DESTDIR=%{buildroot} install
+make PYTHON=%{__python2} DESTDIR=%{buildroot} install
 %find_lang %{realname}
 
-%if 0%{?with_python3}
 pushd %{py3dir}
 make PYTHON=%{__python3} DESTDIR=%{buildroot} install
 popd
-%endif
 
 %files
 %defattr(-,root,root,-)
 %license COPYING
 %doc README ChangeLog examples
-%{python_sitelib}/*
+%{python2_sitelib}/*
 
 %files -n %{realname}-data -f %{realname}.lang
 
-%if 0%{?with_python3}
 %files -n python3-%{realname}
 %license COPYING
 %doc README ChangeLog examples
 %{python3_sitelib}/*
-%endif
 
 %changelog
-* Wed Oct 21 2015 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 1.12.8-1.R
-- Check if device is a DASDDevice in make_unformatted_dasd list. (#1273009)
-  (sbueno+anaconda)
+* Wed Mar 16 2016 Arkady L. Shane <ashejn@russianfedora.ru> - 1.19-1.R
+- read branding from rfremix-release
 
-* Thu Oct 15 2015 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 1.12.7-1.R
+* Fri Feb 19 2016 Brian C. Lane <bcl@redhat.com> - 1.19-1
+- Ignore _setFormat no-member pylint error on LVMSnapShotBase (bcl)
+- Include python3-bugzilla when running tests (bcl)
+- Cleanup wildcard import in misc_test.py (bcl)
+- Make sure filter is a list in makebumpver (bcl)
+- Don't warn on unused-argument in __div__ (bcl)
+- Ignore pylint false positive assertRaisesRegex deprecation (bcl)
+- Change log.warn to log.warning (bcl)
+- Remove references to the interruptible-system-call check (dshea)
+- Add tests for FS overhead methods (jkonecny)
+
+* Fri Jan 08 2016 Brian C. Lane <bcl@redhat.com> - 1.18-1
+- Add more class methods for better use of metadata (jkonecny)
+- Remove pocketlint from BuildRequires (bcl)
+
+* Wed Nov 18 2015 Brian C. Lane <bcl@redhat.com> - 1.17-1
+- Do not catch CryptoError when decrypting LUKS format (#1280239) (vtrefny)
+- Do not try to get LVM cache's size from stats for inactive LV (vpodzime)
+- Ignore unused memo_dict arguments in __deepcopy__ methods. (clumens)
+- Do not create a copy of singleton objects (vpodzime)
+- Account for LVM metadata in the LVMFactory (vpodzime)
+- Rename size->space in LVMFactory._get_total_space (vpodzime)
+- Put the LVM metadata size calculation into a separate property (vpodzime)
+- Merge pull request #267 from atodorov/fix_1252703 (vpodzime)
+- Update dmdev size when setting up disk images (atodorov)
+
+* Wed Oct 28 2015 Brian C. Lane <bcl@redhat.com> - 1.16-1
+- Merge pull request #257 from vpodzime/master-singleton_decorator (vpodzime)
+- Add pylint stuff to .gitignore (pjones)
+- Minor cleanups in set_up_logging() (pjones)
+- Make a logger for test data that we can automatically use later (pjones)
+- edd: Fix one regexp so it matches against a real system /or/ test data.
+  (pjones)
+- Merge pull request #253 from dashea/libblockdev-python (vpodzime)
+- Make the function adding the deprecation doc text more generic (vpodzime)
+- Merge pull request #242 from dwlehman/resolveDevice-regex (dlehman)
+- Fix an overly inclusive regex in DeviceTree.resolveDevice. (dlehman)
+- Merge pull request #244 from atodorov/master (vpodzime)
+- Require the python libblockdev packages (dshea)
+- Merge pull request #243 from dwlehman/flexible-alignment (dlehman)
+- Merge pull request #230 from vpodzime/master-lvm_debug (vpodzime)
+- Add a 'debug' flag and use it for LVM debugging (vpodzime)
+- Bypass util.run_program to avoid logging deadlock. (dlehman)
+- Add an edd test data harvester. (pjones)
+- Do not save None as passphrase for LUKS devices (#1269646) (vtrefny)
+- edd: make logging work usefully during tests (pjones)
+- edd: Get rid of biosdev_to_edd_dir(), it is pointless. (pjones)
+- Make distutils.filelist.findall() do the right thing with symlinks maybe.
+  (pjones)
+- edd: Fix some minor 'make check' complaints. (pjones)
+- edd: Make devicetree not use edd.edd_dict, instead use blivet's copy.
+  (pjones)
+- edd: Remove the "absurd_virt" test cases for now. (pjones)
+- Add a udev settle call after instantiating parted.Disk. (#1267858) (dlehman)
+- edd: Add missing directories for absurd_virt test case. (pjones)
+- produce coverage-report.log and enable coverage in CI (atodorov)
+- Use minimal alignment as needed when allocating small partitions. (dlehman)
+- Add support for minimal alignment of very small partitions. (dlehman)
+- Add an error class for alignment errors. (dlehman)
 - Deprecate createSubVolumes method (vtrefny)
 - Change btrfs.do_self_mount to contextmanager (#1266673) (vtrefny)
+- edd: Remove a bunch of nonfunctional EDD tests. (pjones)
+- edd: Add another set of test cases for our QEMU data. (pjones)
+- edd: Add another set of test data. (pjones)
+- edd: Add some working tests for EDD. (pjones)
+- edd: Add a real EDD dataset captured from a system. (pjones)
+- edd: Make our edd matcher able to use a fake sysfs root. (pjones)
+- edd: Add EDD 4 code and some logging cleanups. (pjones)
+- edd: Try to make EDD support actually match what the kernel does. (pjones)
+- Always build python2 and python3 versions. (bcl)
+- Switch to using rd.iscsi.initiator (#1268315) (bcl)
 
-* Tue Oct 13 2015 Arkady L. Shane <ashejn@russianfedora.ru> - 1.12.6-1.R
-- RFRemixify
-
-* Thu Oct 08 2015 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 1.12.6-1
+* Fri Oct 02 2015 Brian C. Lane <bcl@redhat.com> - 1.15-1
+- Update Makefile to default to python3. (dlehman)
+- Add test for extended partition minSize (vtrefny)
+- Allow resizing of non-leaf partitions (vtrefny)
+- Fix minSize for extended partitions (#1254875) (vtrefny)
 - Fix calling non-existing method (#1252902) (jkonecny)
-
-* Thu Sep 24 2015 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 1.12.5-1
+- Use the RAID classes to calculate btrfs sizes (#1264696) (dshea)
+- Handle sysfs size if it is missing (#1265090) (bcl)
 - Convert float to str for better precision in Size (jkonecny)
+- Merge pull request #226 from dwlehman/lvactivate-lvmetad (dlehman)
+- Wait for auto-activation of LVs when lvmetad is running. (#1261621) (dlehman)
+- Add a function to tell us if the lvmetad socket exists. (dlehman)
 - Don't teardown FSs when searching for installed systems (#1252902) (jkonecny)
+- Merge pull request #218 from vpodzime/master-lvm_on_raid_improvements
+  (vpodzime)
+- Account for bigger LVM meta data due to alignment on MD RAID (vpodzime)
+- Calculate the MD RAID superblock size from the right size (vpodzime)
+- Don't be naïve about liblvm (vpodzime)
 
-* Mon Sep 14 2015 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 1.12.4-1
+* Fri Sep 11 2015 Brian C. Lane <bcl@redhat.com> - 1.14-1
 - Make sure devices are torn down in findExistingInstallations (#1261439)
   (vpodzime)
-
-* Thu Sep 10 2015 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 1.12.3-1
+- Merge pull request #211 from dwlehman/multipath-member-metadata (dlehman)
+- Merge pull request #212 from dwlehman/recursive-teardown (dlehman)
 - Mount efivarfs during os installation (#1260799) (bcl)
+- Use --whatprovides when querying for if all requirements are installed.
+  (clumens)
 - Add method for estimated size of formated device (#1224048) (jkonecny)
 - Add support for mul,div,sub,add by float to Size (jkonecny)
-- Exclude isodir from valid disks (jkonecny)
+- Merge pull request #220 from AdamWill/nodev-typo (vpodzime)
 - fix typo in NoDevice: updateSize not udpateSize (awilliam)
-
-* Thu Sep 03 2015 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 1.12.2-1
+- Duplicate VG names are problem even if their disks are ignored (#1198367)
+  (vpodzime)
+- Merge pull request #215 from vpodzime/master-lvm_on_raid (vpodzime)
+- Do not reserve extra space for metadata in a VG with RAID PVs (vpodzime)
+- Merge pull request #207 from vpodzime/master-lvm_pmspare (vpodzime)
 - Fix currentSize for extended partitions (#1254899) (vtrefny)
 - Catch problems with chassis vendor names (#1256072) (bcl)
 - Don't teardown protected devices (jkonecny)
-- Do not propagate low-level blockdev.CryptoError when setting up LUKS
-  (#1253925) (vpodzime)
+- Don't store UUIDs or labels of multipath members. (dlehman)
+- Continue with recursive teardown beyond inactive devices. (dlehman)
+- Reserve space for the 'pmspare' LV in a VG (vpodzime)
+- Add a property to get cached LVs in a VG (vpodzime)
+- Fix VG free space check when shrinking an LV (vpodzime)
+- Add a property for Requests to reserve some extra space (vpodzime)
+- Use Size instances for sizes in LVM cache's stats (vpodzime)
+- Implement metadata size reporting for the LVM cache (vpodzime)
+
+* Mon Aug 24 2015 Brian C. Lane <bcl@redhat.com> - 1.13-1
+- Add CONTRIBUTING file to blivet. (sbueno+anaconda)
+- Merge pull request #208 from vpodzime/master-luks_catch_exceptions (vpodzime)
 - Fix the name of the variable specifying requested libblockdev plugins
   (#1256273) (jstodola)
-
-* Thu Aug 20 2015 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 1.12.1-1
+- Merge pull request #209 from vpodzime/master-thinp_fix (vpodzime)
 - Change labelFormatOK to classmethods (vtrefny)
-- Remove the cacheRequest kwarg for thin(pool) LVs (#1254567) (vpodzime)
+- Add 'build' and '.directory' to gitignore (vtrefny)
 - Fix copy method (#1254135) (bcl)
 - Add OSError to list of errors in updateSysfsPath (#1252949) (bcl)
-- Make sure LV's properties reporting size return a Size instance (#1253787)
+- Remove the cacheRequest kwarg for thin(pool) LVs (#1254567) (vpodzime)
+- Do not propagate low-level blockdev.CryptoError when setting up LUKS
+  (#1253925) (vpodzime)
+- Merge pull request #199 from vpodzime/master-lvm_cache_tests (vpodzime)
+- Merge pull request #201 from vpodzime/master-mountsCache_resolve_devspec
   (vpodzime)
+- Prefer code consistency over pylint's complaints in tests (vpodzime)
+- Add a basic test for cached LVMLogicalVolumeDevice's properties (vpodzime)
+- Add a basic test for LVMLogicalVolumeDevice's properties (vpodzime)
+- Make sure LV's properties reporting size return a Size instance (vpodzime)
+- Add unit tests for the LVM cache support (vpodzime)
 - Use device name from udev only if it's available (#1252052) (vpodzime)
-- Fix _unalignedMaxPartSize for logical partitions (#1250890) (vtrefny)
-- Allow aligning free regions to disk grainSize (#1244671) (vtrefny)
 - Add test for getFreeSpace aligning (vtrefny)
-- Change zanata.xml to match new f23-branch name. (sbueno+anaconda)
+- Allow aligning free regions to disk grainSize (#1244671) (vtrefny)
+- Fix _unalignedMaxPartSize for logical partitions (#1250890) (vtrefny)
 
 * Fri Aug 07 2015 Brian C. Lane <bcl@redhat.com> - 1.12-1
 - Remove unusable free regions from list when setting up growth. (dlehman)
