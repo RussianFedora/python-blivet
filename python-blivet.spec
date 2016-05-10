@@ -1,7 +1,7 @@
 Summary:  A python module for system storage configuration
 Name: python-blivet
 Url: http://fedoraproject.org/wiki/blivet
-Version: 1.19
+Version: 1.20.1
 Release: 1%{?dist}
 Epoch: 1
 License: LGPLv2+
@@ -109,6 +109,18 @@ popd
 %{python3_sitelib}/*
 
 %changelog
+* Tue May 03 2016 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 1.20.1-1.R
+- Break the cycle in LVMPhysicalVolume.destroy (#1331630) (vpodzime)
+- Protect the live device's parent (#1172342) (bcl)
+- Do not add btrfs volume subvolid to subvolumes mountopts (#1306808) (vtrefny)
+
+* Mon Apr 18 2016 Samantha N. Bueno <sbueno+anaconda@redhat.com> - 1.20.0-1.R
+- Ignore all merge commits when making rpm log. (dlehman)
+- Do not add btrfs volume subvolid to subvolumes mountopts (#1306808) (vtrefny)
+- Protect the live device's parent (#1172342) (bcl)
+- Do not add mdarray with no slave (#1321393) (vtrefny)
+- Update zanata.xml for 1.20 release for f24. (sbueno+anaconda)
+
 * Wed Mar 16 2016 Arkady L. Shane <ashejn@russianfedora.ru> - 1.19-1.R
 - read branding from rfremix-release
 
