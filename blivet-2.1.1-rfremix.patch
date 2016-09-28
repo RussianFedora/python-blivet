@@ -1,0 +1,16 @@
+diff -urN blivet-2.1.5.orig/blivet/osinstall.py blivet-2.1.5/blivet/osinstall.py
+--- blivet-2.1.5.orig/blivet/osinstall.py	2016-09-28 13:19:42.606311210 +0300
++++ blivet-2.1.5/blivet/osinstall.py	2016-09-28 13:21:41.874233791 +0300
+@@ -132,7 +132,11 @@
+     except OSError:
+         rel_arch = None
+ 
+-    filename = "%s/etc/redhat-release" % get_sysroot()
++    filename = "%s/etc/rfremix-release" % get_sysroot()
++
++    if not os.access(filename, os.R_OK):
++        filename = "%s/etc/redhat-release" % get_sysroot()
++
+     if os.access(filename, os.R_OK):
+         (rel_name, rel_ver) = release_from_redhat_release(filename)
+     else:
