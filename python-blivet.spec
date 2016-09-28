@@ -62,13 +62,13 @@ configuration.
 
 %prep
 %setup -q -n %{realname}-%{realversion}
-%patch0 -p1 -b .rfremix
 
 rm -rf %{py3dir}
 cp -a . %{py3dir}
 
 %build
 make
+cat %{PATCH0} | patch -p1
 
 %install
 make PYTHON=%{__python3} DESTDIR=%{buildroot} install
