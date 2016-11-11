@@ -5,14 +5,20 @@ Version: 2.1.6
 
 #%%global prerelease .b1
 # prerelease, if defined, should be something like .a1, .b1, .b2.dev1, or .c2
-Release: 1%{?prerelease}%{?dist}.R
+Release: 3%{?prerelease}%{?dist}.R
 Epoch: 1
 License: LGPLv2+
 Group: System Environment/Libraries
 %global realname blivet
 %global realversion %{version}%{?prerelease}
 Source0: http://github.com/rhinstaller/blivet/archive/%{realname}-%{realversion}.tar.gz
-Patch0: blivet-2.1.1-rfremix.patch
+
+Patch0: 0001-Use-correct-type-for-port-in-GVariant-tuple.patch
+Patch1: 0002-iSCSI-Store-auth-info-in-NodeInfo-tuples.patch
+Patch2: 0003-iSCSI-turn-iscsi.initiator_set-into-a-property.patch
+Patch3: 0004-Add-device-symlinks-to-the-PVs-dictionary-for-MD-RAI.patch
+
+Patch10: blivet-2.1.1-rfremix.patch
 
 # Versions of required components (done so we make sure the buildrequires
 # match the requires versions of things).
@@ -67,8 +73,14 @@ rm -rf %{py3dir}
 cp -a . %{py3dir}
 
 %build
+# don't try to regenerate blivet.pot as part of the rpm build.
+touch po/blivet.pot
 make
-cat %{PATCH0} | patch -p1
+cat %{PATCH10} | patch -p1
+%patch0 -p1
+%patch1 -p1
+%patch2 -p1
+%patch3 -p1
 
 %install
 make PYTHON=%{__python3} DESTDIR=%{buildroot} install
@@ -80,6 +92,15 @@ make PYTHON=%{__python3} DESTDIR=%{buildroot} install
 %{python3_sitelib}/*
 
 %changelog
+* Mon Nov 07 2016 David Lehman <dlehman@redhat.com> - 2.1.6-3.R
+- Never update POT file as part of rpm build.
+
+* Mon Nov 07 2016 David Lehman <dlehman@redhat.com> - 2.1.6-2.R
+- Use correct type for port in GVariant tuple (awilliam)
+- iSCSI: Store auth info in NodeInfo tuples (awilliam)
+- iSCSI: turn `iscsi.initiator_set` into a property (awilliam)
+- Add device symlinks to the PVs dictionary for MD RAID PVs (#1389130) (vpodzime)
+
 * Tue Oct 04 2016 David Lehman <dlehman@redhat.com> - 2.1.6-1.R
 - add missing populators to populator.helpers (awilliam)
 
