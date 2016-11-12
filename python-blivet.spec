@@ -68,6 +68,10 @@ configuration.
 
 %prep
 %setup -q -n %{realname}-%{realversion}
+%patch0 -p1
+%patch1 -p1
+%patch2 -p1
+%patch3 -p1
 
 rm -rf %{py3dir}
 cp -a . %{py3dir}
@@ -77,11 +81,6 @@ cp -a . %{py3dir}
 touch po/blivet.pot
 make
 cat %{PATCH10} | patch -p1
-%patch0 -p1
-%patch1 -p1
-%patch2 -p1
-%patch3 -p1
-
 %install
 make PYTHON=%{__python3} DESTDIR=%{buildroot} install
 %find_lang %{realname}
