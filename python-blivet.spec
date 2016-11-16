@@ -5,7 +5,7 @@ Version: 2.1.6
 
 #%%global prerelease .b1
 # prerelease, if defined, should be something like .a1, .b1, .b2.dev1, or .c2
-Release: 3%{?prerelease}%{?dist}.R
+Release: 4%{?prerelease}%{?dist}.R
 Epoch: 1
 License: LGPLv2+
 Group: System Environment/Libraries
@@ -17,6 +17,8 @@ Patch0: 0001-Use-correct-type-for-port-in-GVariant-tuple.patch
 Patch1: 0002-iSCSI-Store-auth-info-in-NodeInfo-tuples.patch
 Patch2: 0003-iSCSI-turn-iscsi.initiator_set-into-a-property.patch
 Patch3: 0004-Add-device-symlinks-to-the-PVs-dictionary-for-MD-RAI.patch
+Patch4: 0001-Fix-detection-of-macefi-partitions-1393846.patch
+Patch5: 0001-Fix-unknown-SAS-device-sysfs-parsing.patch
 
 Patch10: blivet-2.1.1-rfremix.patch
 
@@ -72,6 +74,8 @@ configuration.
 %patch1 -p1
 %patch2 -p1
 %patch3 -p1
+%patch4 -p1
+%patch5 -p1
 
 rm -rf %{py3dir}
 cp -a . %{py3dir}
@@ -91,6 +95,11 @@ make PYTHON=%{__python3} DESTDIR=%{buildroot} install
 %{python3_sitelib}/*
 
 %changelog
+* Tue Nov 15 2016 David Lehman <dlehman@redhat.com> - 2.1.6-4.R
+- Fix detection of 'macefi' partitions (#1393846) (awilliam)
+- Fix "unknown" SAS device sysfs parsing. (#1394026) (awilliam)
+
+
 * Mon Nov 07 2016 David Lehman <dlehman@redhat.com> - 2.1.6-3.R
 - Never update POT file as part of rpm build.
 
