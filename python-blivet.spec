@@ -1,11 +1,11 @@
 Summary:  A python module for system storage configuration
 Name: python-blivet
 Url: http://fedoraproject.org/wiki/blivet
-Version: 2.1.6
+Version: 2.1.7
 
 #%%global prerelease .b1
 # prerelease, if defined, should be something like .a1, .b1, .b2.dev1, or .c2
-Release: 4%{?prerelease}%{?dist}.R
+Release: 7%{?prerelease}%{?dist}.R
 Epoch: 1
 License: LGPLv2+
 Group: System Environment/Libraries
@@ -13,13 +13,10 @@ Group: System Environment/Libraries
 %global realversion %{version}%{?prerelease}
 Source0: http://github.com/rhinstaller/blivet/archive/%{realname}-%{realversion}.tar.gz
 
-Patch0: 0001-Use-correct-type-for-port-in-GVariant-tuple.patch
-Patch1: 0002-iSCSI-Store-auth-info-in-NodeInfo-tuples.patch
-Patch2: 0003-iSCSI-turn-iscsi.initiator_set-into-a-property.patch
-Patch3: 0004-Add-device-symlinks-to-the-PVs-dictionary-for-MD-RAI.patch
-Patch4: 0001-Fix-detection-of-macefi-partitions-1393846.patch
-Patch5: 0001-Fix-unknown-SAS-device-sysfs-parsing.patch
-
+Patch0: 0001-Fix-unknown-SAS-device-sysfs-parsing.patch
+# Fix crash with Python 3.6:
+# https://bugzilla.redhat.com/show_bug.cgi?id=1408282
+Patch1: https://github.com/rhinstaller/blivet/pull/530.patch
 Patch10: blivet-2.1.1-rfremix.patch
 
 # Versions of required components (done so we make sure the buildrequires
@@ -30,7 +27,7 @@ Patch10: blivet-2.1.1-rfremix.patch
 %global pypartedver 3.10.4
 %global e2fsver 1.41.0
 %global utillinuxver 2.15.1
-%global libblockdevver 1.9
+%global libblockdevver 2.1
 %global libbytesizever 0.3
 %global pyudevver 0.18
 
@@ -61,6 +58,7 @@ Requires: e2fsprogs >= %{e2fsver}
 Requires: lsof
 Requires: python3-hawkey
 Requires: python3-gobject-base
+Requires: systemd-udev
 Obsoletes: blivet-data < 1:2.0.3
 Obsoletes: python-blivet < 1:2.0.3
 
@@ -72,10 +70,6 @@ configuration.
 %setup -q -n %{realname}-%{realversion}
 %patch0 -p1
 %patch1 -p1
-%patch2 -p1
-%patch3 -p1
-%patch4 -p1
-%patch5 -p1
 
 rm -rf %{py3dir}
 cp -a . %{py3dir}
@@ -95,6 +89,9 @@ make PYTHON=%{__python3} DESTDIR=%{buildroot} install
 %{python3_sitelib}/*
 
 %changelog
+* Thu Mar  9 2017 Arkady L. Shane <ashejn@russianfedora.pro> - 1:2.1.7-7.R
+- sync with upstream
+
 * Tue Nov 15 2016 David Lehman <dlehman@redhat.com> - 2.1.6-4.R
 - Fix detection of 'macefi' partitions (#1393846) (awilliam)
 - Fix "unknown" SAS device sysfs parsing. (#1394026) (awilliam)
