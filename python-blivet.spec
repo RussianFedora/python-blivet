@@ -5,7 +5,7 @@ Version: 2.1.7
 
 #%%global prerelease .b1
 # prerelease, if defined, should be something like .a1, .b1, .b2.dev1, or .c2
-Release: 8%{?prerelease}%{?dist}.R
+Release: 10%{?prerelease}%{?dist}.R
 Epoch: 1
 License: LGPLv2+
 Group: System Environment/Libraries
@@ -19,6 +19,7 @@ Patch0: 0001-Fix-unknown-SAS-device-sysfs-parsing.patch
 Patch1: https://github.com/rhinstaller/blivet/pull/530.patch
 Patch2: rhbz1383873.patch
 Patch3: rhbz1033778.patch
+Patch4:	rhbz1445302.patch
 Patch10: blivet-2.1.1-rfremix.patch
 
 # Versions of required components (done so we make sure the buildrequires
@@ -74,6 +75,7 @@ configuration.
 %patch1 -p1
 %patch2 -p1
 %patch3 -p1
+%patch4 -p1
 
 rm -rf %{py3dir}
 cp -a . %{py3dir}
@@ -93,6 +95,12 @@ make PYTHON=%{__python3} DESTDIR=%{buildroot} install
 %{python3_sitelib}/*
 
 %changelog
+* Tue May 9 2017 Vojtech Trefny <vtrefny@redhat.com> - 1:2.1.7-10.R
+- Rebuild with fixed changelog
+
+* Tue May 9 2017 Vojtech Trefny <vtrefny@redhat.com> - 1:2.1.7-9.R
+- Look the disk up for a partition by name not sys_name (#1445302)
+
 * Tue Mar 21 2017 David Lehman <dlehman@redhat.com> - 1:2.1.7-8.R
 - Clean up parent/child relations on partition ctor error. (#1383873) (dlehman)
 - Do not allow resize of devices with no/unrecoginized formatting. (#1033778) (dlehman)
