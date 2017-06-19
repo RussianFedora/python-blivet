@@ -120,7 +120,7 @@ make PYTHON=%{__python3} DESTDIR=%{buildroot} install
 - Properly unset mountpoint of a snapshot's format (vpodzime)
 - Update snapshot's format's exists flag based on its origin (vpodzime)
 
-* Wed Apr 19 2017 Vojtech Trefny <vtrefny@redhat.com> - 2.1.8-1.R
+* Fri May 26 2017 Vojtech Trefny <vtrefny@redhat.com> - 2.1.8-1.R
 - Fix "unknown" SAS device sysfs parsing. (adamw)
 - Reserve space in a VG when using LVMThinPFactory (vpodzime)
 - Reserve space in a VG instead of padding thin pools on autopart (vpodzime)
