@@ -1,11 +1,11 @@
 Summary:  A python module for system storage configuration
 Name: python-blivet
 Url: http://fedoraproject.org/wiki/blivet
-Version: 2.1.7
+Version: 2.1.9
 
 #%%global prerelease .b1
 # prerelease, if defined, should be something like .a1, .b1, .b2.dev1, or .c2
-Release: 10%{?prerelease}%{?dist}.R
+Release: 1%{?prerelease}%{?dist}.R
 Epoch: 1
 License: LGPLv2+
 Group: System Environment/Libraries
@@ -13,13 +13,6 @@ Group: System Environment/Libraries
 %global realversion %{version}%{?prerelease}
 Source0: http://github.com/rhinstaller/blivet/archive/%{realname}-%{realversion}.tar.gz
 
-Patch0: 0001-Fix-unknown-SAS-device-sysfs-parsing.patch
-# Fix crash with Python 3.6:
-# https://bugzilla.redhat.com/show_bug.cgi?id=1408282
-Patch1: https://github.com/rhinstaller/blivet/pull/530.patch
-Patch2: rhbz1383873.patch
-Patch3: rhbz1033778.patch
-Patch4:	rhbz1445302.patch
 Patch10: blivet-2.1.1-rfremix.patch
 
 # Versions of required components (done so we make sure the buildrequires
@@ -30,7 +23,7 @@ Patch10: blivet-2.1.1-rfremix.patch
 %global pypartedver 3.10.4
 %global e2fsver 1.41.0
 %global utillinuxver 2.15.1
-%global libblockdevver 2.1
+%global libblockdevver 2.6
 %global libbytesizever 0.3
 %global pyudevver 0.18
 
@@ -71,11 +64,6 @@ configuration.
 
 %prep
 %setup -q -n %{realname}-%{realversion}
-%patch0 -p1
-%patch1 -p1
-%patch2 -p1
-%patch3 -p1
-%patch4 -p1
 
 rm -rf %{py3dir}
 cp -a . %{py3dir}
@@ -95,6 +83,69 @@ make PYTHON=%{__python3} DESTDIR=%{buildroot} install
 %{python3_sitelib}/*
 
 %changelog
+* Thu Jun 01 2017 Vojtech Trefny <vtrefny@redhat.com> - 2.1.9-1.R
+- Adapt to logging module name change (mkolman)
+- Updated calls to avoid log spamming (japokorn)
+- Add a script for generating and pushing updated documentation (vtrefny)
+- pylint: ignore some false positive warnings in blivet.py and lvm.py (vtrefny)
+- pylint: remove unused false positives from pocketlint config (vtrefny)
+- pylint: disable false positive "not-context-manager" for threading.Lock
+  (vtrefny)
+- pylint: ignore "arguments-differ" warnings in blivet.size.Size (vtrefny)
+- pylint: fix various "arguments-differ" warnings (vtrefny)
+- pylint: remove init from platform.X86 (vtrefny)
+- pylint: fix various errors in tests (vtrefny)
+- pylint: ignore "arguments-differ" warning for "do_tasks" method (vtrefny)
+- pylint: fix false positive for "catching-non-exception" (vtrefny)
+- pylint: fix argument name for Device._remove_parent/_add_parent (vtrefny)
+- Always mount & unmount an XFS file system when writing new UUID (vpodzime)
+- Do not remove manually created extended partitions (#1440150) (vtrefny)
+- Look the disk up for a partition by name not sys_name (vpodzime)
+- Disable pylint "no-member" warnings for re module constants (vtrefny)
+- Allow custom chunk size specification for MDRaidArrayDevice (vtrefny)
+- Add RAID chunk size to the generated kickstart file (vtrefny)
+- Use structured logging for the anaconda logger (mkolman)
+- Use distutils.spawn.find_executable instead of our custom code (vpodzime)
+- Add a method to reset file system's UUID (vpodzime)
+- Try to mount and unmount an XFS FS when writing UUID (vpodzime)
+- Add a method for a file system to generate a new UUID (vpodzime)
+- tests/fsuuid: Implement checking invalid UUIDs (aszlig)
+- formats/swap: Support setting UUID (aszlig)
+- tests: Add a series of tests for setting UUIDs (aszlig)
+- tests: Add tests to check the UUID format checkers (aszlig)
+- tasks: Implement setting UUID after FS creation (aszlig)
+- formats/fs: Implement setting UUID during mkfs (aszlig)
+- formats/fs: Add functionality for checking UUIDs (aszlig)
+- tasks/fsmkfs: Add arguments for setting UUID (aszlig)
+- Properly unset mountpoint of a snapshot's format (vpodzime)
+- Update snapshot's format's exists flag based on its origin (vpodzime)
+
+* Wed Apr 19 2017 Vojtech Trefny <vtrefny@redhat.com> - 2.1.8-1.R
+- Fix "unknown" SAS device sysfs parsing. (adamw)
+- Reserve space in a VG when using LVMThinPFactory (vpodzime)
+- Reserve space in a VG instead of padding thin pools on autopart (vpodzime)
+- Focus the nonzero disk image size test a bit. (dlehman)
+- Add missing tearDown method to luks resize test case. (dlehman)
+- Fix some flag stomping in tests. (dlehman)
+- Remove the useless method requiredDiskLabelType (vponcova)
+- FBA DASD should use the msdos disk label type (vponcova)
+- Be more careful when checking for udisks-iscsi availability (vpodzime)
+- Do not allow resize of devices with no/unrecoginized formatting. (#1033778)
+  (dlehman)
+- Clean up parent/child relations on partition ctor error. (#1383873) (dlehman)
+- Use all ancestors when adding RAID disks to exclusiveDisks (vtrefny)
+- Fix detection of linear MD RAID (vtrefny)
+- Add 'discard' option to crypttab for newly created LUKS (vpodzime)
+- Loop devices w/o backing file are now ignored (japokorn)
+- Set parted boot flag when creating EFI filesystem (vtrefny)
+- formats/fs: Set NTFS to be formattable (aszlig)
+- Do not try to search for 'tmpfs' devices in udev database (vtrefny)
+- Fix resize test in fstesting (vtrefny)
+- Fix task availability test (vtrefny)
+- Shallow copy another alignment property (#1408282) (awilliam)
+- Fix the test dependencies (vpodzime)
+- Add 'systemd-udev' to dependencies (#1392591) (vtrefny)
+
 * Tue May 9 2017 Vojtech Trefny <vtrefny@redhat.com> - 1:2.1.7-10.R
 - Rebuild with fixed changelog
 
