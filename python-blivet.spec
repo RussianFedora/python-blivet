@@ -5,7 +5,7 @@ Version: 2.1.9
 
 #%%global prerelease .b1
 # prerelease, if defined, should be something like .a1, .b1, .b2.dev1, or .c2
-Release: 1%{?prerelease}%{?dist}.R
+Release: 1.1%{?prerelease}%{?dist}.R
 Epoch: 1
 License: LGPLv2+
 Group: System Environment/Libraries
@@ -13,6 +13,7 @@ Group: System Environment/Libraries
 %global realversion %{version}%{?prerelease}
 Source0: http://github.com/rhinstaller/blivet/archive/%{realname}-%{realversion}.tar.gz
 
+Patch0: 0001-Revert-Anaconda-unreleased-changes.patch
 Patch10: blivet-2.1.1-rfremix.patch
 
 # Versions of required components (done so we make sure the buildrequires
@@ -64,6 +65,7 @@ configuration.
 
 %prep
 %setup -q -n %{realname}-%{realversion}
+%patch0 -p1
 
 rm -rf %{py3dir}
 cp -a . %{py3dir}
@@ -83,6 +85,10 @@ make PYTHON=%{__python3} DESTDIR=%{buildroot} install
 %{python3_sitelib}/*
 
 %changelog
+* Mon Jul 10 2017 Arkady L. Shane <ashejn@russianfedora.pro> - 2.1.9-1.1.R
+- revert anaconda unreleased changes
+  http://koji.russianfedora.pro/kojifiles/work/tasks/2686/52686/livemedia-out.log
+
 * Thu Jun 01 2017 Vojtech Trefny <vtrefny@redhat.com> - 2.1.9-1.R
 - Adapt to logging module name change (mkolman)
 - Updated calls to avoid log spamming (japokorn)

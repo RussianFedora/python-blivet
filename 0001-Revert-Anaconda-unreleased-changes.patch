@@ -1,0 +1,53 @@
+From df0bd061577667c3780b81f5b0941792f6bac86a Mon Sep 17 00:00:00 2001
+From: Vojtech Trefny <vtrefny@redhat.com>
+Date: Fri, 16 Jun 2017 10:20:25 +0200
+Subject: [PATCH 1/2] Revert "Use structured logging for the anaconda logger"
+
+This reverts commit ca404db665eb2db9215393ac3718371a1aa8d0b8.
+---
+ blivet/autopart.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/blivet/autopart.py b/blivet/autopart.py
+index 35742a4..5278850 100644
+--- a/blivet/autopart.py
++++ b/blivet/autopart.py
+@@ -37,7 +37,7 @@ from .static_data import luks_data
+ from pykickstart.constants import AUTOPART_TYPE_BTRFS, AUTOPART_TYPE_LVM, AUTOPART_TYPE_LVM_THINP, AUTOPART_TYPE_PLAIN
+ 
+ import logging
+-log = logging.getLogger("anaconda.blivet.autopart")
++log = logging.getLogger("anaconda")
+ 
+ # maximum ratio of swap size to disk size (10 %)
+ MAX_SWAP_DISK_RATIO = Decimal('0.1')
+-- 
+1.8.3.1
+
+
+From f4fa2600e719402729177e997956a44f3260bdb8 Mon Sep 17 00:00:00 2001
+From: Vojtech Trefny <vtrefny@redhat.com>
+Date: Fri, 16 Jun 2017 10:20:36 +0200
+Subject: [PATCH 2/2] Revert "Adapt to logging module name change"
+
+This reverts commit c367d62a516e541ad28636c8259321f1c53417ce.
+---
+ blivet/__init__.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/blivet/__init__.py b/blivet/__init__.py
+index 1657e07..a9d9394 100644
+--- a/blivet/__init__.py
++++ b/blivet/__init__.py
+@@ -124,7 +124,7 @@ def enable_installer_mode():
+         from pyanaconda.constants import ROOT_PATH  # pylint: disable=redefined-outer-name,no-name-in-module
+         _storage_root = _sysroot = ROOT_PATH
+ 
+-    from pyanaconda.anaconda_logging import program_log_lock
++    from pyanaconda.anaconda_log import program_log_lock
+     util.program_log_lock = program_log_lock
+ 
+     flags.installer_mode = True
+-- 
+1.8.3.1
+
